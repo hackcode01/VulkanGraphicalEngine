@@ -1,0 +1,25 @@
+{
+    "files.associations": {
+        "*.cpp": "cpp",
+        "defines.h": "c",
+        "x86intrin.h": "c",
+        "platform.h": "c",
+        "game_types.h": "c",
+        "application.h": "c",
+        "memory.h": "c",
+        "array": "cpp",
+        "utility": "cpp",
+        "xutility": "cpp",
+        "compare": "cpp",
+        "format": "cpp",
+        "memory": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "xmemory": "cpp",
+        "xstring": "cpp",
+        "xtr1common": "cpp",
+        "logger.h": "c",
+        "dynamic_array.h": "c",
+        "entry.h": "c"
+    }
+}
