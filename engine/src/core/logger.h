@@ -1,5 +1,5 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef __LOGGER_H__
+#define __LOGGER_H__
 
 #include "../defines.h"
 

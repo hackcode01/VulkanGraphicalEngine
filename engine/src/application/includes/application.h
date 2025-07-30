@@ -1,5 +1,5 @@
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#ifndef __APPLICATION_H__
+#define __APPLICATION_H__
 
 #include "../../defines.h"
 

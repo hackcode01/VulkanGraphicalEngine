@@ -1,7 +1,7 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef __INPUT_H__
+#define __INPUT_H__
 
-#include "defines.h"
+#include "../defines.h"
 
 typedef enum buttons {
     BUTTON_LEFT,

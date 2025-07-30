@@ -1,7 +1,7 @@
 #ifndef DYNAMIC_ARRAY_H
 #define DYNAMIC_ARRAY_H
 
-#include "defines.h"
+#include "../../defines.h"
 
 /*
 Memory layout

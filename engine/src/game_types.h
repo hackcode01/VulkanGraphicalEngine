@@ -1,5 +1,5 @@
-#ifndef GAME_TYPES_H
-#define GAME_TYPES_H
+#ifndef __GAME_TYPES_H__
+#define __GAME_TYPES_H__
 
 #include "./application/includes/application.h"
 

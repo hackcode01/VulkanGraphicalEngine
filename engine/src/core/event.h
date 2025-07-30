@@ -1,7 +1,7 @@
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef __EVENT_H__
+#define __EVENT_H__
 
-#include "defines.h"
+#include "../defines.h"
 
 typedef struct {
     /* 128 bytes. */

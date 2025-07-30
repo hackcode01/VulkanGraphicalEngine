@@ -1,7 +1,7 @@
-#include "input.h"
-#include "event.h"
-#include "core/memory/includes/memory.h"
-#include "logger.h"
+#include "./input.h"
+#include "./event.h"
+#include "./memory/includes/memory.h"
+#include "./logger.h"
 
 typedef struct keyboardState {
     b8 keys_t[256];

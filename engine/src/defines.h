@@ -1,5 +1,5 @@
-#ifndef DEFINES_H
-#define DEFINES_H
+#ifndef __DEFINES_H__
+#define __DEFINES_H__
 
 /* Unsigned int types. */
 typedef unsigned char u8;

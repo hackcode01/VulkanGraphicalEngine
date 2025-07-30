@@ -1,7 +1,7 @@
-#include "event.h"
+#include "./event.h"
 
-#include "memory/includes/memory.h"
-#include "containers/includes/dynamic_array.h"
+#include "./memory/includes/memory.h"
+#include "../containers/includes/dynamic_array.h"
 
 typedef struct registeredEvent_t {
     void* listener;

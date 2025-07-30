@@ -1,5 +1,5 @@
-#ifndef PLATFORM_H
-#define PLATFORM_H
+#ifndef __PLATFORM_H__
+#define __PLATFORM_H__
 
 #include "../../defines.h"
 
