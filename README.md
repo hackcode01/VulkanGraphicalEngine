@@ -1,2 +1,2 @@
 # VulkanGraphicalEngine
-Графический движок на Vulkan
+A graphics engine based on Vulkan, developed with a view to the future.
