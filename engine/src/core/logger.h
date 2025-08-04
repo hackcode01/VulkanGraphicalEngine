@@ -29,43 +29,43 @@ void shutdownLogging();
 ENGINE_API void logOutput(LogLevel level, const char* message, ...);
 
 /* Logs a fatal-level message. */
-#define FATAL(message, ...) logOutput(LogLevel::LOG_LEVEL_FATAL, message, ##__VA_ARGS__);
+#define ENGINE_FATAL(message, ...) logOutput(LOG_LEVEL_FATAL, message, ##__VA_ARGS__);
 
-#ifndef ERROR
+#ifndef ENGINE_ERROR
 /* Logs a error-level message. */
-#define ERROR(message, ...) logOutput(LogLevel::LOG_LEVEL_ERROR, message, ##__VA_ARGS__);
+#define ENGINE_ERROR(message, ...) logOutput(LOG_LEVEL_ERROR, message, ##__VA_ARGS__);
 #endif
 
 #if LOG_WARNING_ENABLED == 1
 /* Logs a warning-level message. */
-#define WARNING(message, ...) log_output(LogLevel::LOG_LEVEL_WARNING, message, ##__VA_ARGS__);
+#define ENGINE_WARNING(message, ...) logOutput(LOG_LEVEL_WARNING, message, ##__VA_ARGS__);
 #else
 /* Does nothing when LOG_WARN_ENABLED != 1 */
-#define WARNING(message, ...)
+#define ENGINE_WARNING(message, ...)
 #endif
 
 #if LOG_INFO_ENABLED == 1
 /* Logs a info-level message. */
-#define INFO(message, ...) log_output(LogLevel::LOG_LEVEL_INFO, message, ##__VA_ARGS__);
+#define ENGINE_INFO(message, ...) logOutput(LOG_LEVEL_INFO, message, ##__VA_ARGS__);
 #else
 /* Does nothing when LOG_INFO_ENABLED != 1 */
-#define INFO(message, ...)
+#define ENGINE_INFO(message, ...)
 #endif
 
 #if LOG_DEBUG_ENABLED == 1
 /* Logs a debug-level message. */
-#define DEBUG(message, ...) log_output(LogLevel::LOG_LEVEL_DEBUG, message, ##__VA_ARGS__);
+#define ENGINE_DEBUG(message, ...) logOutput(LOG_LEVEL_DEBUG, message, ##__VA_ARGS__);
 #else
 /* Does nothing when LOG_DEBUG_ENABLED != 1 */
-#define DEBUG(message, ...)
+#define ENGINE_DEBUG(message, ...)
 #endif
 
 #if LOG_TRACE_ENABLED == 1
 /* Logs a trace-level message. */
-#define TRACE(message, ...) log_output(LogLevel::LOG_LEVEL_TRACE, message, ##__VA_ARGS__);
+#define ENGINE_TRACE(message, ...) logOutput(LOG_LEVEL_TRACE, message, ##__VA_ARGS__);
 #else
 /* Does nothing when LOG_TRACE_ENABLED != 1 */
-#define TRACE(message, ...)
+#define ENGINE_TRACE(message, ...)
 #endif
 
 #endif

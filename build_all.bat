@@ -1,16 +1,18 @@
-@ECHO OFF
-REM Build everything
+@REM @ECHO OFF
+@REM REM Build everything
 
-ECHO "Building everything..."
+@REM ECHO "Building everything..."
 
-PUSHD engine
-CALL build.bat
-POPD
-IF %ERROR_LEVELS% NEQ 0 (echo Error:%ERROR_LEVELS% && exit)
+@REM PUSHD engine
+@REM CALL build.bat
+@REM POPD
+@REM IF %ERROR_LEVELS% NEQ 0 (echo Error:%ERROR_LEVELS% && exit)
 
-PUSHD editor
-CALL build.bat
-POPD
-IF %ERROR_LEVELS% NEQ 0 (echo Error:%ERROR_LEVELS% && exit)
+@REM PUSHD editor
+@REM CALL build.bat
+@REM POPD
+@REM IF %ERROR_LEVELS% NEQ 0 (echo Error:%ERROR_LEVELS% && exit)
 
-ECHO "All assemblies build successfully."
+@REM ECHO "All assemblies build successfully."
+
+cd .\engine\ && .\build.bat && cd ../editor\ && ./build.batbuild.bat

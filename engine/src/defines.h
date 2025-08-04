@@ -77,7 +77,7 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected u8 to be 1 byte.");
 #elif TARGET_OS_IPHONE
 
 /* iOS device. */
-#define KPLATFORM_IOS 1
+#define PLATFORM_IOS 1
 
 /* Other kinds of Mac OS */
 #elif TARGET_OS_MAC
