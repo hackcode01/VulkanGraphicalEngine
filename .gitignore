@@ -1,6 +1,6 @@
 *~
 *.autosave
-*.a
+
 *.core
 *.moc
 *.o
@@ -14,8 +14,6 @@
 *.qm
 .#*
 *.*#
-core
-!core/
 tags
 .DS_Store
 .directory
@@ -78,5 +76,3 @@ CMakeLists.txt.user*
 .uic/
 /build*/
 build
-
-.vscode
