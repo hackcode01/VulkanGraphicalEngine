@@ -1,6 +1,8 @@
 #include "../../engine/src/core/logger.h"
 #include "../../engine/src/core/asserts.h"
 
+#include "../../engine/src/platform/platform.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -15,6 +17,14 @@ int main(void) {
     ENGINE_TRACE("A test message: %f", 3.14f);
 
     ENGINE_ASSERT(0 == 0);
+
+    PlatformState_t state;
+    if (platformStartup(&state, "Engine Editor", 100, 100, 1800, 800)) {
+        while (TRUE) {
+            platformPumpMessages(&state);
+        }
+    }
+    platformShutdown(&state);
 
     printf_s("\n\nEnter any key for continue...");
 

@@ -13,10 +13,12 @@ set(ENGINE_INCLUDES
     src/defines.h
     src/core/asserts.h
     src/core/logger.h
+    src/platform/platform.h
 )
 
 set(ENGINE_SOURCES
     src/core/logger.c
+    src/platform/platform_win32.c
 )
 
 set(ENGINE_ALL_SOURCES

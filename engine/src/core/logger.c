@@ -1,5 +1,6 @@
 #include "logger.h"
 #include "asserts.h"
+#include "../platform/platform.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -20,19 +21,24 @@ void logOutput(LogLevel level, const char* message, ...) {
         "[DEBUG]",
         "[TRACE]"
     };
+    b8 isError = level < LOG_LEVEL_WARNING;
 
-    char outMessage[32000];
+    char outMessage[32000ull];
     memset(outMessage, 0, sizeof(outMessage));
 
     va_list argPtr;
     va_start(argPtr, message);
-    vsnprintf(outMessage, 32000, message, argPtr);
+    vsnprintf(outMessage, 32000ull, message, argPtr);
     va_end(argPtr);
 
-    char outMessageResult[32000];
+    char outMessageResult[32000ull];
     sprintf(outMessageResult, "%s%s\n", levelStrings[level], outMessage);
 
-    printf("%s", outMessageResult);
+    if (isError) {
+        platformConsoleWriteError(outMessageResult, level);
+    } else {
+        platformConsoleWrite(outMessageResult, level);
+    }
 }
 
 void reportAssertionFailure(const char* expression, const char* message,
