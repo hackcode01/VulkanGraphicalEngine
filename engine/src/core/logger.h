@@ -23,6 +23,13 @@ typedef enum {
     LOG_LEVEL_TRACE = 5
 } LogLevel;
 
+typedef enum {
+    FAILED_CREATE_GAME = -1,
+    FAILED_ASSIGNED_FUNCTION_GAME = -2,
+    FAILED_CREATE_APPLICATION = -3,
+    FAILED_APPLICATION_SHUTDOWN_GRACEFULLY = -4
+} TypeErrors_t;
+
 b8 initializeLogging();
 void shutdownLogging();
 
