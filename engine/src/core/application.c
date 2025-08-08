@@ -4,6 +4,7 @@
 #include "logger.h"
 
 #include "../platform/platform.h"
+#include "engine_memory.h"
 
 typedef struct {
     Game* gameInstance;
@@ -63,6 +64,8 @@ b8 applicationCreate(Game* gameInstance) {
 }
 
 b8 applicationRun() {
+    ENGINE_INFO(engineGetMemoryUsageStr());
+
     while (appState.isRunning) {
         if (!platformPumpMessages(&appState.platform)) {
             appState.isRunning = FALSE;

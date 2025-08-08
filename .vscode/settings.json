@@ -19,6 +19,8 @@
         "xkblib.h": "c",
         "keysym.h": "c",
         "game_types.h": "c",
-        "application.h": "c"
+        "application.h": "c",
+        "engine_memory.h": "c",
+        "logger.h": "c"
     }
 }

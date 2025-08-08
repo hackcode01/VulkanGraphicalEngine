@@ -3,6 +3,7 @@
 
 #include "core/application.h"
 #include "core/logger.h"
+#include "core/engine_memory.h"
 #include "./game_types.h"
 
 #include <stdlib.h>
@@ -14,6 +15,8 @@ extern b8 createGame(Game* outGame);
  * The main entry point of the application.
  */
 int main(void) {
+    initializeMemory();
+
     /* Request the game instance from the application. */
     Game gameInstance;
     if (!createGame(&gameInstance)) {
@@ -39,6 +42,8 @@ int main(void) {
         ENGINE_INFO("Application didn't shutdown gracefully.")
         return FAILED_APPLICATION_SHUTDOWN_GRACEFULLY;
     }
+
+    shutdownMemory();
 
     return EXIT_SUCCESS;
 }

@@ -20,8 +20,8 @@ void platformShutdown(PlatformState_t* platformState);
 
 b8 platformPumpMessages(PlatformState_t* platformState);
 
-ENGINE_API void* platformAllocate(u64 size, b8 aligned);
-ENGINE_API void platformFree(void* block);
+void* platformAllocate(u64 size, b8 aligned);
+void platformFree(void* block);
 
 void* platformZeroMemory(void* block, u64 size);
 void* platformCopyMemory(void* dest, const void* source, u64 size);
