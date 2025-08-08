@@ -11,6 +11,14 @@
         "renderer_frontend.h": "c",
         "asserts.h": "c",
         "platform.h": "c",
-        "defines.h": "c"
+        "defines.h": "c",
+        "time.h": "c",
+        "stdlib.h": "c",
+        "string.h": "c",
+        "unistd.h": "c",
+        "xkblib.h": "c",
+        "keysym.h": "c",
+        "game_types.h": "c",
+        "application.h": "c"
     }
 }

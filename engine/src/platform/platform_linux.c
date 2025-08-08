@@ -1,9 +1,9 @@
 #include "platform.h"
 
 // Linux platform layer.
-#if KPLATFORM_LINUX
+#if PLATFORM_LINUX
 
-#include "core/logger.h"
+#include "../core/logger.h"
 
 #include <xcb/xcb.h>
 #include <X11/keysym.h>
@@ -12,11 +12,7 @@
 #include <X11/Xlib-xcb.h>  // sudo apt-get install libxkbcommon-x11-dev
 #include <sys/time.h>
 
-#if _POSIX_C_SOURCE >= 199309L
-#include <time.h>  // nanosleep
-#else
 #include <unistd.h>  // usleep
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,16 +27,16 @@ typedef struct internal_state {
     xcb_atom_t wm_delete_win;
 } internal_state;
 
-b8 platform_startup(
-    platform_state* plat_state,
+b8 platformStartup(
+    PlatformState_t* plat_state,
     const char* application_name,
     i32 x,
     i32 y,
     i32 width,
     i32 height) {
     // Create the internal state.
-    plat_state->internal_state = malloc(sizeof(internal_state));
-    internal_state* state = (internal_state*)plat_state->internal_state;
+    plat_state->internalState = malloc(sizeof(internal_state));
+    internal_state* state = (internal_state*)plat_state->internalState;
 
     // Connect to X
     state->display = XOpenDisplay(NULL);
@@ -52,7 +48,7 @@ b8 platform_startup(
     state->connection = XGetXCBConnection(state->display);
 
     if (xcb_connection_has_error(state->connection)) {
-        KFATAL("Failed to connect to X server via XCB.");
+        ENGINE_FATAL("Failed to connect to X server via XCB.");
         return FALSE;
     }
 
@@ -152,16 +148,16 @@ b8 platform_startup(
     // Flush the stream
     i32 stream_result = xcb_flush(state->connection);
     if (stream_result <= 0) {
-        KFATAL("An error occurred when flusing the stream: %d", stream_result);
+        ENGINE_FATAL("An error occurred when flusing the stream: %d", stream_result);
         return FALSE;
     }
 
     return TRUE;
 }
 
-void platform_shutdown(platform_state* plat_state) {
+void platformShutdown(PlatformState_t* plat_state) {
     // Simply cold-cast to the known type.
-    internal_state* state = (internal_state*)plat_state->internal_state;
+    internal_state* state = (internal_state*)plat_state->internalState;
 
     // Turn key repeats back on since this is global for the OS... just... wow.
     XAutoRepeatOn(state->display);
@@ -169,9 +165,9 @@ void platform_shutdown(platform_state* plat_state) {
     xcb_destroy_window(state->connection, state->window);
 }
 
-b8 platform_pump_messages(platform_state* plat_state) {
+b8 platformPumpMessages(PlatformState_t* plat_state) {
     // Simply cold-cast to the known type.
-    internal_state* state = (internal_state*)plat_state->internal_state;
+    internal_state* state = (internal_state*)plat_state->internalState;
 
     xcb_generic_event_t* event;
     xcb_client_message_event_t* cm;
@@ -220,40 +216,45 @@ b8 platform_pump_messages(platform_state* plat_state) {
     return !quit_flagged;
 }
 
-void* platform_allocate(u64 size, b8 aligned) {
+void* platformAllocate(u64 size, b8 aligned) {
     return malloc(size);
 }
-void platform_free(void* block, b8 aligned) {
+
+void platformFree(void* block) {
     free(block);
 }
-void* platform_zero_memory(void* block, u64 size) {
+
+void* platformZeroMemory(void* block, u64 size) {
     return memset(block, 0, size);
 }
-void* platform_copy_memory(void* dest, const void* source, u64 size) {
+
+void* platformCopyMemory(void* dest, const void* source, u64 size) {
     return memcpy(dest, source, size);
 }
-void* platform_set_memory(void* dest, i32 value, u64 size) {
+
+void* platformSetMemory(void* dest, i32 value, u64 size) {
     return memset(dest, value, size);
 }
 
-void platform_console_write(const char* message, u8 colour) {
-    // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
-    const char* colour_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
-    printf("\033[%sm%s\033[0m", colour_strings[colour], message);
-}
-void platform_console_write_error(const char* message, u8 colour) {
+void platformConsoleWrite(const char* message, u8 colour) {
     // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
     const char* colour_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
     printf("\033[%sm%s\033[0m", colour_strings[colour], message);
 }
 
-f64 platform_get_absolute_time() {
+void platformConsoleWriteError(const char* message, u8 colour) {
+    // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
+    const char* colour_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
+    printf("\033[%sm%s\033[0m", colour_strings[colour], message);
+}
+
+f64 platformGetAbsoluteTime() {
     struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    clock_gettime(0, &now);
     return now.tv_sec + now.tv_nsec * 0.000000001;
 }
 
-void platform_sleep(u64 ms) {
+void platformSleep(u64 ms) {
 #if _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
     ts.tv_sec = ms / 1000;
