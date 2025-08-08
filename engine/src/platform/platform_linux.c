@@ -1,50 +1,50 @@
 #include "platform.h"
 
-// Linux platform layer.
+/* Linux platform layer. */
 #if PLATFORM_LINUX
 
 #include "../core/logger.h"
 
 #include <xcb/xcb.h>
 #include <X11/keysym.h>
-#include <X11/XKBlib.h>  // sudo apt-get install libx11-dev
+#include <X11/XKBlib.h> /* sudo apt-get install libx11-dev */
 #include <X11/Xlib.h>
-#include <X11/Xlib-xcb.h>  // sudo apt-get install libxkbcommon-x11-dev
+#include <X11/Xlib-xcb.h> /* sudo apt-get install libxkbcommon-x11-dev */
 #include <sys/time.h>
 
-#include <unistd.h>  // usleep
+#include <unistd.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-typedef struct internal_state {
+typedef struct InternalState {
     Display* display;
     xcb_connection_t* connection;
     xcb_window_t window;
     xcb_screen_t* screen;
-    xcb_atom_t wm_protocols;
-    xcb_atom_t wm_delete_win;
-} internal_state;
+    xcb_atom_t wmProtocols;
+    xcb_atom_t wmDeleteWindow;
+} InternalState;
 
 b8 platformStartup(
-    PlatformState_t* plat_state,
-    const char* application_name,
+    PlatformState_t* platformState,
+    const char* applicationName,
     i32 x,
     i32 y,
     i32 width,
     i32 height) {
-    // Create the internal state.
-    plat_state->internalState = malloc(sizeof(internal_state));
-    internal_state* state = (internal_state*)plat_state->internalState;
+    /* Create the internal state. */
+    platformState->internalState = malloc(sizeof(InternalState));
+    InternalState* state = (InternalState*)platformState->internalState;
 
-    // Connect to X
+    /* Connect to X. */
     state->display = XOpenDisplay(NULL);
 
-    // Turn off key repeats.
+    /* Turn off key repeats. */
     XAutoRepeatOff(state->display);
 
-    // Retrieve the connection from the display.
+    /* Retrieve the connection from the display. */
     state->connection = XGetXCBConnection(state->display);
 
     if (xcb_connection_has_error(state->connection)) {
@@ -52,100 +52,104 @@ b8 platformStartup(
         return FALSE;
     }
 
-    // Get data from the X server
+    /* Get data from the X server */
     const struct xcb_setup_t* setup = xcb_get_setup(state->connection);
 
-    // Loop through screens using iterator
-    xcb_screen_iterator_t it = xcb_setup_roots_iterator(setup);
+    /* Loop through screens using iterator. */
+    xcb_screen_iterator_t iterator = xcb_setup_roots_iterator(setup);
     int screen_p = 0;
     for (i32 s = screen_p; s > 0; s--) {
-        xcb_screen_next(&it);
+        xcb_screen_next(&iterator);
     }
 
-    // After screens have been looped through, assign it.
-    state->screen = it.data;
+    /* After screens have been looped through, assign iterator. */
+    state->screen = iterator.data;
 
-    // Allocate a XID for the window to be created.
+    /* Allocate a XID for the window to be created. */
     state->window = xcb_generate_id(state->connection);
 
-    // Register event types.
-    // XCB_CW_BACK_PIXEL = filling then window bg with a single colour
-    // XCB_CW_EVENT_MASK is required.
-    u32 event_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+    /** Register event types.
+     * XCB_CW_BACK_PIXEL = filling then window bg with a single colour
+     * XCB_CW_EVENT_MASK is required.
+     */
+    u32 eventMask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
 
-    // Listen for keyboard and mouse buttons
-    u32 event_values = XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
+    /* Listen for keyboard and mouse buttons. */
+    u32 eventValues = XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
                        XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
                        XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_POINTER_MOTION |
                        XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
-    // Values to be sent over XCB (bg colour, events)
-    u32 value_list[] = {state->screen->black_pixel, event_values};
+    /* Values to be sent over XCB (bg colour, events). */
+    u32 valueList[] = {state->screen->black_pixel, eventValues};
 
-    // Create the window
+    /* Create the window. */
     xcb_void_cookie_t cookie = xcb_create_window(
         state->connection,
-        XCB_COPY_FROM_PARENT,  // depth
+        XCB_COPY_FROM_PARENT,
         state->window,
-        state->screen->root,            // parent
-        x,                              //x
-        y,                              //y
-        width,                          //width
-        height,                         //height
-        0,                              // No border
-        XCB_WINDOW_CLASS_INPUT_OUTPUT,  //class
+        state->screen->root,
+        x,
+        y,
+        width,
+        height,
+        0,
+        XCB_WINDOW_CLASS_INPUT_OUTPUT,
         state->screen->root_visual,
-        event_mask,
-        value_list);
+        eventMask,
+        valueList
+    );
 
-    // Change the title
+    /* Change the title. */
     xcb_change_property(
         state->connection,
         XCB_PROP_MODE_REPLACE,
         state->window,
         XCB_ATOM_WM_NAME,
         XCB_ATOM_STRING,
-        8,  // data should be viewed 8 bits at a time
-        strlen(application_name),
-        application_name);
+        8,
+        strlen(applicationName),
+        applicationName);
 
-    // Tell the server to notify when the window manager
-    // attempts to destroy the window.
-    xcb_intern_atom_cookie_t wm_delete_cookie = xcb_intern_atom(
+    /**
+     * Tell the server to notify when the window manager
+     * attempts to destroy the window.
+     */
+    xcb_intern_atom_cookie_t wmDeleteCookie = xcb_intern_atom(
         state->connection,
         0,
         strlen("WM_DELETE_WINDOW"),
         "WM_DELETE_WINDOW");
-    xcb_intern_atom_cookie_t wm_protocols_cookie = xcb_intern_atom(
+    xcb_intern_atom_cookie_t wmProtocolsCookie = xcb_intern_atom(
         state->connection,
         0,
         strlen("WM_PROTOCOLS"),
         "WM_PROTOCOLS");
-    xcb_intern_atom_reply_t* wm_delete_reply = xcb_intern_atom_reply(
+    xcb_intern_atom_reply_t* wmDeleteReply = xcb_intern_atom_reply(
         state->connection,
-        wm_delete_cookie,
+        wmDeleteCookie,
         NULL);
-    xcb_intern_atom_reply_t* wm_protocols_reply = xcb_intern_atom_reply(
+    xcb_intern_atom_reply_t* wmProtocolsReply = xcb_intern_atom_reply(
         state->connection,
-        wm_protocols_cookie,
+        wmProtocolsCookie,
         NULL);
-    state->wm_delete_win = wm_delete_reply->atom;
-    state->wm_protocols = wm_protocols_reply->atom;
+    state->wmDeleteWindow = wmDeleteReply->atom;
+    state->wmProtocols = wmProtocolsReply->atom;
 
     xcb_change_property(
         state->connection,
         XCB_PROP_MODE_REPLACE,
         state->window,
-        wm_protocols_reply->atom,
+        wmProtocolsReply->atom,
         4,
         32,
         1,
-        &wm_delete_reply->atom);
+        &wmDeleteReply->atom);
 
-    // Map the window to the screen
+    /* Map the window to the screen. */
     xcb_map_window(state->connection, state->window);
 
-    // Flush the stream
+    /* Flush the stream. */
     i32 stream_result = xcb_flush(state->connection);
     if (stream_result <= 0) {
         ENGINE_FATAL("An error occurred when flusing the stream: %d", stream_result);
@@ -155,65 +159,56 @@ b8 platformStartup(
     return TRUE;
 }
 
-void platformShutdown(PlatformState_t* plat_state) {
-    // Simply cold-cast to the known type.
-    internal_state* state = (internal_state*)plat_state->internalState;
+void platformShutdown(PlatformState_t* platformState) {
+    /* Simply cold-cast to the known type. */
+    InternalState* state = (InternalState*)platformState->internalState;
 
-    // Turn key repeats back on since this is global for the OS... just... wow.
+    /* Turn key repeats back on since this is global for the OS... just... wow. */
     XAutoRepeatOn(state->display);
 
     xcb_destroy_window(state->connection, state->window);
 }
 
-b8 platformPumpMessages(PlatformState_t* plat_state) {
-    // Simply cold-cast to the known type.
-    internal_state* state = (internal_state*)plat_state->internalState;
+b8 platformPumpMessages(PlatformState_t* platformState) {
+    /* Simply cold-cast to the known type. */
+    InternalState* state = (InternalState*)platformState->internalState;
 
     xcb_generic_event_t* event;
-    xcb_client_message_event_t* cm;
+    xcb_client_message_event_t* clientMessageEvent;
 
-    b8 quit_flagged = FALSE;
+    b8 quitFlagged = FALSE;
 
-    // Poll for events until null is returned.
+    /* Poll for events until null is returned. */
     while (event != 0) {
         event = xcb_poll_for_event(state->connection);
         if (event == 0) {
             break;
         }
 
-        // Input events
+        /* Input events */
         switch (event->response_type & ~0x80) {
             case XCB_KEY_PRESS:
-            case XCB_KEY_RELEASE: {
-                // TODO: Key presses and releases
-            } break;
+            case XCB_KEY_RELEASE: {} break;
             case XCB_BUTTON_PRESS:
-            case XCB_BUTTON_RELEASE: {
-                // TODO: Mouse button presses and releases
-            } break;
-            case XCB_MOTION_NOTIFY: {
-                // TODO: mouse movement
-            } break;
-            case XCB_CONFIGURE_NOTIFY: {
-                // TODO: Resizing
-            } break;
+            case XCB_BUTTON_RELEASE: {} break;
+            case XCB_MOTION_NOTIFY: {} break;
+            case XCB_CONFIGURE_NOTIFY: {} break;
 
             case XCB_CLIENT_MESSAGE: {
-                cm = (xcb_client_message_event_t*)event;
+                clientMessageEvent = (xcb_client_message_event_t*)event;
 
-                // Window close
-                if (cm->data.data32[0] == state->wm_delete_win) {
-                    quit_flagged = TRUE;
+                /* Window close. */
+                if (clientMessageEvent->data.data32[0] == state->wmDeleteWindow) {
+                    quitFlagged = TRUE;
                 }
             } break;
             default:
-                // Something else
                 break;
         }
 
         free(event);
     }
-    return !quit_flagged;
+    return !quitFlagged;
 }
 
 void* platformAllocate(u64 size, b8 aligned) {
@@ -237,13 +232,13 @@ void* platformSetMemory(void* dest, i32 value, u64 size) {
 }
 
 void platformConsoleWrite(const char* message, u8 colour) {
-    // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
+    /* FATAL, ERROR, WARNING, INFO, DEBUG, TRACE */
     const char* colour_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
     printf("\033[%sm%s\033[0m", colour_strings[colour], message);
 }
 
 void platformConsoleWriteError(const char* message, u8 colour) {
-    // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
+    /* FATAL, ERROR, WARNING, INFO, DEBUG, TRACE */
     const char* colour_strings[] = {"0;41", "1;31", "1;33", "1;32", "1;34", "1;30"};
     printf("\033[%sm%s\033[0m", colour_strings[colour], message);
 }
