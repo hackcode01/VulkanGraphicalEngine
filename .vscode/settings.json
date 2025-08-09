@@ -21,6 +21,9 @@
         "game_types.h": "c",
         "application.h": "c",
         "engine_memory.h": "c",
-        "logger.h": "c"
+        "logger.h": "c",
+        "iosfwd": "c",
+        "tuple": "cpp",
+        "utility": "cpp"
     }
 }

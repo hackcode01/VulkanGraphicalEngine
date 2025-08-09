@@ -5,6 +5,7 @@
 
 #include "../platform/platform.h"
 #include "engine_memory.h"
+#include "event.h"
 
 typedef struct {
     Game* gameInstance;
@@ -39,6 +40,11 @@ b8 applicationCreate(Game* gameInstance) {
 
     appState.isRunning = TRUE;
     appState.isSuspended = FALSE;
+
+    if (!eventInitialize()) {
+        ENGINE_ERROR("Event system failed initialization. Application cannot continue.");
+        return FALSE;
+    }
 
     if (!platformStartup(
         &appState.platform,
@@ -89,8 +95,8 @@ b8 applicationRun() {
 
     appState.isRunning = FALSE;
 
+    eventShutdown();
     platformShutdown(&appState.platform);
 
     return TRUE;
 }
-
