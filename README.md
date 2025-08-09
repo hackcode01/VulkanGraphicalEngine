@@ -1,7 +1,6 @@
 # VulkanGraphicalEngine
-A graphics engine based on Vulkan, developed with a view to the future.
 
-Run file build_all.bat only in root directory of project.
+A graphics engine based on Vulkan, developed with a view to the future.
 
 # Build project on CMake
 
@@ -17,4 +16,13 @@ You can omit the --target flag, in which case the project will be built with the
 
 This will build your project and create the library file engine/engine.lib and the executable file editor/editor.exe
 
-Translated with DeepL.com (free version)
+# Build project on files
+Run next command in root directory of project.
+
+On Linux:
+./build_all.sh
+./run_editor.sh
+
+On Windows:
+./build_all.bat
+./run_editor.bat
