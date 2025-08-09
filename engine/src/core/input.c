@@ -28,7 +28,7 @@ static InputState state = {};
 void inputInitialize() {
     engineZeroMemory(&state, sizeof(InputState));
     initialized = TRUE;
-    ENGINE_INFO("Input subsystem initialized.");
+    ENGINE_INFO("Input subsystem initialized.")
 }
 
 void inputShutdown() {

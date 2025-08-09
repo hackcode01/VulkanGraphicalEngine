@@ -25,6 +25,7 @@
         "iosfwd": "c",
         "tuple": "cpp",
         "utility": "cpp",
-        "engine_memory": "c"
+        "engine_memory": "c",
+        "game.h": "c"
     }
 }

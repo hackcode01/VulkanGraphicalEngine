@@ -89,7 +89,7 @@ b8 platformStartup(
 
     if (handle == 0) {
         MessageBoxA(NULL, "Window creation failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
-        ENGINE_FATAL("Window creation failed!");
+        ENGINE_FATAL("Window creation failed!")
 
         return FALSE;
     } else {

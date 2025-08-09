@@ -20,7 +20,7 @@ int main(void) {
     /* Request the game instance from the application. */
     Game gameInstance;
     if (!createGame(&gameInstance)) {
-        ENGINE_FATAL("Could not create game!");
+        ENGINE_FATAL("Could not create game!")
         return FAILED_CREATE_GAME;
     }
 

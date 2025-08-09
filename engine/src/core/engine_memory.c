@@ -57,7 +57,7 @@ void* engineAllocate(u64 size, MemoryTag tag) {
 void engineFree(void* block, u64 size, MemoryTag tag) {
     if (tag == MEMORY_TAG_UNKNOWN) {
         ENGINE_WARNING("engineFree called using MEMORY_TAG_UNKNOW. "
-            "Re-class this allocation.");
+            "Re-class this allocation.")
     }
 
     memoryStats.totalAllocated -= size;

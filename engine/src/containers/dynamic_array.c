@@ -81,7 +81,7 @@ void* _dynamicArrayPopAt(void* array, u64 index, void* dest) {
 
     if (index >= length) {
         ENGINE_ERROR("Index outside the bounds of this array! Length: %i, index: %i",
-            length, index);
+            length, index)
         return array;
     }
 
@@ -107,7 +107,7 @@ void* _dynamicArrayInsertAt(void* array, u64 index, void* valuePtr) {
 
     if (index >= length) {
         ENGINE_ERROR("Index outside the bounds of this array! Length: %i, index: %i",
-            length, index);
+            length, index)
         return array;
     }
 

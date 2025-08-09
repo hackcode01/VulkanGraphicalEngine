@@ -3,7 +3,7 @@
 #include "../../engine/src/core/logger.h"
 
 b8 gameInitialize(Game* gameInstance) {
-    ENGINE_DEBUG("gameInitialize() called!");
+    ENGINE_DEBUG("gameInitialize() called!")
 
     return TRUE;
 }

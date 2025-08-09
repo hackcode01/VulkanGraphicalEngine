@@ -48,7 +48,7 @@ b8 platformStartup(
     state->connection = XGetXCBConnection(state->display);
 
     if (xcb_connection_has_error(state->connection)) {
-        ENGINE_FATAL("Failed to connect to X server via XCB.");
+        ENGINE_FATAL("Failed to connect to X server via XCB.")
         return FALSE;
     }
 
@@ -152,7 +152,7 @@ b8 platformStartup(
     /* Flush the stream. */
     i32 stream_result = xcb_flush(state->connection);
     if (stream_result <= 0) {
-        ENGINE_FATAL("An error occurred when flusing the stream: %d", stream_result);
+        ENGINE_FATAL("An error occurred when flusing the stream: %d", stream_result)
         return FALSE;
     }
 
