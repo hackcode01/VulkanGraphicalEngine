@@ -70,7 +70,7 @@ void _dynamicArrayPop(void* array, void* dest) {
     u64 length = dynamicArrayLength(array);
     u64 stride = dynamicArrayStride(array);
     u64 address = (u64)array;
-    address =+ ((length - 1) * stride);
+    address += ((length - 1) * stride);
     engineCopyMemory(dest, (void*)address, stride);
     _dynamicArrayFieldSet(array, DYNAMIC_ARRAY_LENGTH, length - 1);
 }

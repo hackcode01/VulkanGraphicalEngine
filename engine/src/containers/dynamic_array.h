@@ -75,7 +75,7 @@ ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* valuePtr);
     _dynamicArrayFieldGet(array, DYNAMIC_ARRAY_LENGTH)
 
 #define dynamicArrayStride(array) \
-    _dynamicArrayGieldGet(array, DYNAMIC_ARRAY_STRIDE)
+    _dynamicArrayFieldGet(array, DYNAMIC_ARRAY_STRIDE)
 
 #define dynamicArrayLengthSet(array, value) \
     _dynamicArrayFieldSet(array, DYNAMIC_ARRAY_LENGTH, value)

@@ -12,7 +12,7 @@ typedef struct EventCodeEntry {
     RegisteredEvent* events;
 } EventCodeEntry;
 
-#define MAX_MESSAGES_CODES 65536
+#define MAX_MESSAGES_CODES 15000
 
 /* State structure. */
 typedef struct EventSystemState {
@@ -55,7 +55,7 @@ b8 eventRegister(u16 code, void* listener, PFN_on_event on_event) {
     }
 
     if (state.registered[code].events == 0) {
-        state.registered[code].events == dynamicArrayCreate(RegisteredEvent);
+        state.registered[code].events = dynamicArrayCreate(RegisteredEvent);
     }
 
     u64 registeredCount = dynamicArrayLength(state.registered[code].events);
