@@ -6,6 +6,7 @@
 #include "../platform/platform.h"
 #include "engine_memory.h"
 #include "event.h"
+#include "input.h"
 
 typedef struct {
     Game* gameInstance;
@@ -30,6 +31,7 @@ b8 applicationCreate(Game* gameInstance) {
 
     /* Initialize subsystems. */
     initializeLogging();
+    inputInitialize();
 
     ENGINE_FATAL("A message: %f", 3.14f);
     ENGINE_ERROR("A message: %f", 3.14f);
@@ -90,12 +92,22 @@ b8 applicationRun() {
                 appState.isRunning = FALSE;
                 break;
             }
+
+            /**
+             * NOTE: Input update/state copying should always be handled
+             * after any input should be recorded. I.E. before this line.
+             * As a safety, input is the last thing to be updated before
+             * this frame ends.
+             */
+            inputUpdate(0);
         }
     }
 
     appState.isRunning = FALSE;
 
     eventShutdown();
+    inputShutdown();
+
     platformShutdown(&appState.platform);
 
     return TRUE;

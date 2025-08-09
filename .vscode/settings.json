@@ -24,6 +24,7 @@
         "logger.h": "c",
         "iosfwd": "c",
         "tuple": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "engine_memory": "c"
     }
 }
