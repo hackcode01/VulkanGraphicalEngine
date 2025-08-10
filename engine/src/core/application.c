@@ -7,6 +7,9 @@
 #include "engine_memory.h"
 #include "event.h"
 #include "input.h"
+#include "clock.h"
+
+#include "../renderer/renderer_frontend.h"
 
 #include "../../../editor/src/game.h"
 
@@ -16,14 +19,15 @@ typedef struct {
     Game* gameInstance;
     b8 isRunning;
     b8 isSuspended;
-    PlatformState_t platform;
+    PlatformState platform;
     i16 width;
     i16 height;
+    clock clock;
     f64 lastTime;
-} ApplicationState_t;
+} ApplicationState;
 
 static b8 initialized = FALSE;
-static ApplicationState_t appState;
+static ApplicationState appState;
 
 /* Event handlers. */
 b8 applicationOnEvent(u16 code, void* sender, void* listenerInstance, EventContext context);
@@ -59,8 +63,13 @@ b8 applicationCreate(Game* gameInstance) {
         gameInstance->appConfig.startPositionX,
         gameInstance->appConfig.startPositionY,
         gameInstance->appConfig.startWidth,
-        gameInstance->appConfig.startHeight
-    )) {
+        gameInstance->appConfig.startHeight)) {
+        return FALSE;
+    }
+
+    /** Renderer startup */
+    if (!rendererInitialize(gameInstance->appConfig.name, &appState.platform)) {
+        ENGINE_FATAL("Failed to initialize renderer. Aborting application.")
         return FALSE;
     }
 
@@ -77,14 +86,19 @@ b8 applicationCreate(Game* gameInstance) {
 }
 
 b8 applicationRun() {
-    printf("\n\n");
+    clockStart(&appState.clock);
+    clockUpdate(&appState.clock);
+    appState.lastTime = appState.clock.elapsed;
+    f64 runningTime = 0;
+    u8 frameCount = 0;
+    f64 targetFrameSeconds = 1.0f / 60.0f;
 
+    printf("\n\n");
     ENGINE_DEBUG("Size of struct GameState = %lld", sizeof(GameState))
     ENGINE_DEBUG("Size of struct Game = %lld", sizeof(Game))
-    ENGINE_DEBUG("Size of struct Game = %lld", sizeof(ApplicationState_t))
+    ENGINE_DEBUG("Size of struct Game = %lld", sizeof(ApplicationState))
     ENGINE_DEBUG("Size of struct Game = %lld", sizeof(ApplicationConfig_t))
-    ENGINE_DEBUG("Size of struct PlatformState_t = %lld", sizeof(PlatformState_t))
-
+    ENGINE_DEBUG("Size of struct PlatformState = %lld", sizeof(PlatformState))
     printf("\n\n");
 
     ENGINE_INFO(engineGetMemoryUsageStr())
@@ -95,17 +109,48 @@ b8 applicationRun() {
         }
 
         if (!appState.isSuspended) {
-            if (!appState.gameInstance->update(appState.gameInstance, (f32)0)) {
+            /** Update clock and get delta time. */
+            clockUpdate(&appState.clock);
+            f64 currentTime = appState.clock.elapsed;
+            f64 delta = (currentTime - appState.lastTime);
+            f64 frameStartTime = platformGetAbsoluteTime();
+
+            if (!appState.gameInstance->update(appState.gameInstance, (f32)delta)) {
                 ENGINE_FATAL("Game update failed, shutting down.")
                 appState.isRunning = FALSE;
                 break;
             }
 
             /* Call the game's render routine. */
-            if (!appState.gameInstance->render(appState.gameInstance, (f32)0)) {
+            if (!appState.gameInstance->render(appState.gameInstance, (f32)delta)) {
                 ENGINE_FATAL("Game render failed, shutting down.")
                 appState.isRunning = FALSE;
                 break;
+            }
+
+            /**
+             * Refactor packet creation.
+             */
+            RenderPacket packet;
+            packet.deltaTime = delta;
+            rendererDrawFrame(&packet);
+
+            /** Figure out how long the frame took and, if below. */
+            f64 frameEndTime = platformGetAbsoluteTime();
+            f64 frameElapsedTime = frameEndTime - frameStartTime;
+            runningTime += frameElapsedTime;
+            f64 remainingSeconds = targetFrameSeconds - frameElapsedTime;
+
+            if (remainingSeconds > 0) {
+                u64 remaining_ms = (remainingSeconds * 1000);
+
+                /** If there is time left, give it back to the OS. */
+                b8 limitFrames = FALSE;
+                if (remaining_ms > 0 && limitFrames) {
+                    platformSleep(remaining_ms -1);
+                }
+
+                ++frameCount;
             }
 
             /**
@@ -114,7 +159,10 @@ b8 applicationRun() {
              * As a safety, input is the last thing to be updated before
              * this frame ends.
              */
-            inputUpdate(0);
+            inputUpdate(delta);
+
+            /** Update last time. */
+            appState.lastTime = currentTime;
         }
     }
 
@@ -127,6 +175,8 @@ b8 applicationRun() {
     eventShutdown();
     inputShutdown();
 
+    rendererShutdown();
+
     platformShutdown(&appState.platform);
 
     return TRUE;
@@ -136,6 +186,7 @@ b8 applicationOnEvent(u16 code, void* sender, void* listenerInstance,
     EventContext context) {
     switch (code) {
         case EVENT_CODE_APPLICATION_QUIT: {
+            printf("\n\n");
             ENGINE_INFO("EVENT_CODE_APPLICATION_QUIT recieved, shutting down.\n")
             appState.isRunning = FALSE;
             return TRUE;

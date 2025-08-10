@@ -21,7 +21,7 @@ static LARGE_INTEGER startTime;
 LRESULT CALLBACK win32ProcessMessage(HWND hwnd, u32 message, WPARAM wParam, LPARAM lParam);
 
 b8 platformStartup(
-    PlatformState_t *platformState,
+    PlatformState *platformState,
     const char* applicationName,
     i32 x,
     i32 y,
@@ -115,7 +115,7 @@ b8 platformStartup(
     return TRUE;
 }
 
-void platformShutdown(PlatformState_t* platformState) {
+void platformShutdown(PlatformState* platformState) {
     /* Simply cold-cast to the known type. */
     InternalState_t *state = (InternalState_t *)platformState->internalState;
 
@@ -125,7 +125,7 @@ void platformShutdown(PlatformState_t* platformState) {
     }
 }
 
-b8 platformPumpMessages(PlatformState_t* platformState) {
+b8 platformPumpMessages(PlatformState* platformState) {
     MSG message;
 
     while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {

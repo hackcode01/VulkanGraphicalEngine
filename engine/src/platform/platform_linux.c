@@ -33,7 +33,7 @@ typedef struct InternalState {
 Keys translateKeycode(u32 x_keycode);
 
 b8 platformStartup(
-    PlatformState_t* platformState,
+    PlatformState* platformState,
     const char* applicationName,
     i32 x,
     i32 y,
@@ -164,7 +164,7 @@ b8 platformStartup(
     return TRUE;
 }
 
-void platformShutdown(PlatformState_t* platformState) {
+void platformShutdown(PlatformState* platformState) {
     /* Simply cold-cast to the known type. */
     InternalState* state = (InternalState*)platformState->internalState;
 
@@ -174,7 +174,7 @@ void platformShutdown(PlatformState_t* platformState) {
     xcb_destroy_window(state->connection, state->window);
 }
 
-b8 platformPumpMessages(PlatformState_t* platformState) {
+b8 platformPumpMessages(PlatformState* platformState) {
     /* Simply cold-cast to the known type. */
     InternalState* state = (InternalState*)platformState->internalState;
 
