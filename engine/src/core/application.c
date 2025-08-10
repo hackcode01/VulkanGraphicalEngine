@@ -89,19 +89,11 @@ b8 applicationRun() {
     clockStart(&appState.clock);
     clockUpdate(&appState.clock);
     appState.lastTime = appState.clock.elapsed;
-    f64 runningTime = 0;
-    u8 frameCount = 0;
-    f64 targetFrameSeconds = 1.0f / 60.0f;
+    f64 running_time = 0;
+    u8 frame_count = 0;
+    f64 target_frame_seconds = 1.0f / 60;
 
-    printf("\n\n");
-    ENGINE_DEBUG("Size of struct GameState = %lld", sizeof(GameState))
-    ENGINE_DEBUG("Size of struct Game = %lld", sizeof(Game))
-    ENGINE_DEBUG("Size of struct Game = %lld", sizeof(ApplicationState))
-    ENGINE_DEBUG("Size of struct Game = %lld", sizeof(ApplicationConfig_t))
-    ENGINE_DEBUG("Size of struct PlatformState = %lld", sizeof(PlatformState))
-    printf("\n\n");
-
-    ENGINE_INFO(engineGetMemoryUsageStr())
+    ENGINE_INFO(engineGetMemoryUsageStr());
 
     while (appState.isRunning) {
         if (!platformPumpMessages(&appState.platform)) {
@@ -109,66 +101,62 @@ b8 applicationRun() {
         }
 
         if (!appState.isSuspended) {
-            /** Update clock and get delta time. */
+            // Update clock and get delta time.
             clockUpdate(&appState.clock);
-            f64 currentTime = appState.clock.elapsed;
-            f64 delta = (currentTime - appState.lastTime);
-            f64 frameStartTime = platformGetAbsoluteTime();
+            f64 current_time = appState.clock.elapsed;
+            f64 delta = (current_time - appState.lastTime);
+            f64 frame_start_time = platformGetAbsoluteTime();
 
             if (!appState.gameInstance->update(appState.gameInstance, (f32)delta)) {
-                ENGINE_FATAL("Game update failed, shutting down.")
+                ENGINE_FATAL("Game update failed, shutting down.");
                 appState.isRunning = FALSE;
                 break;
             }
 
-            /* Call the game's render routine. */
+            // Call the game's render routine.
             if (!appState.gameInstance->render(appState.gameInstance, (f32)delta)) {
-                ENGINE_FATAL("Game render failed, shutting down.")
+                ENGINE_FATAL("Game render failed, shutting down.");
                 appState.isRunning = FALSE;
                 break;
             }
 
-            /**
-             * Refactor packet creation.
-             */
+            // TODO: refactor packet creation
             RenderPacket packet;
             packet.deltaTime = delta;
             rendererDrawFrame(&packet);
 
-            /** Figure out how long the frame took and, if below. */
-            f64 frameEndTime = platformGetAbsoluteTime();
-            f64 frameElapsedTime = frameEndTime - frameStartTime;
-            runningTime += frameElapsedTime;
-            f64 remainingSeconds = targetFrameSeconds - frameElapsedTime;
+            // Figure out how long the frame took and, if below
+            f64 frame_end_time = platformGetAbsoluteTime();
+            f64 frame_elapsed_time = frame_end_time - frame_start_time;
+            running_time += frame_elapsed_time;
+            f64 remaining_seconds = target_frame_seconds - frame_elapsed_time;
 
-            if (remainingSeconds > 0) {
-                u64 remaining_ms = (remainingSeconds * 1000);
+            if (remaining_seconds > 0) {
+                u64 remaining_ms = (remaining_seconds * 1000);
 
-                /** If there is time left, give it back to the OS. */
-                b8 limitFrames = FALSE;
-                if (remaining_ms > 0 && limitFrames) {
-                    platformSleep(remaining_ms -1);
+                // If there is time left, give it back to the OS.
+                b8 limit_frames = FALSE;
+                if (remaining_ms > 0 && limit_frames) {
+                    platformSleep(remaining_ms - 1);
                 }
 
-                ++frameCount;
+                frame_count++;
             }
 
-            /**
-             * NOTE: Input update/state copying should always be handled
-             * after any input should be recorded. I.E. before this line.
-             * As a safety, input is the last thing to be updated before
-             * this frame ends.
-             */
+            // NOTE: Input update/state copying should always be handled
+            // after any input should be recorded; I.E. before this line.
+            // As a safety, input is the last thing to be updated before
+            // this frame ends.
             inputUpdate(delta);
 
-            /** Update last time. */
-            appState.lastTime = currentTime;
+            // Update last time
+            appState.lastTime = current_time;
         }
     }
 
     appState.isRunning = FALSE;
 
-    /* Shutdown event system. */
+    // Shutdown event system.
     eventUnregister(EVENT_CODE_APPLICATION_QUIT, 0, applicationOnEvent);
     eventUnregister(EVENT_CODE_KEY_PRESSED, 0, applicationOnKey);
     eventUnregister(EVENT_CODE_KEY_RELEASED, 0, applicationOnKey);

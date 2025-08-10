@@ -21,7 +21,7 @@ void platformShutdown(PlatformState* platformState);
 b8 platformPumpMessages(PlatformState* platformState);
 
 void* platformAllocate(u64 size, b8 aligned);
-void platformFree(void* block);
+void platformFree(void* block, b8 aligned);
 
 void* platformZeroMemory(void* block, u64 size);
 void* platformCopyMemory(void* dest, const void* source, u64 size);

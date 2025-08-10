@@ -1,15 +1,15 @@
-#ifndef __DYNAMIC_ARRAY_H__
-#define __DYNAMIC_ARRAY_H__
+#pragma once
 
-#include "../defines.h"
+#include "defines.h"
 
-/**
- * Memory layout
- * u64 capacity = number elements that can be held
- * u64 length = number of elements currently contained
- * u64 stride = size of each element in bytes
- * void* elements
- */
+/*
+Memory layout
+u64 capacity = number elements that can be held
+u64 length = number of elements currently contained
+u64 stride = size of each element in bytes
+void* elements
+*/
+
 enum {
     DYNAMIC_ARRAY_CAPACITY,
     DYNAMIC_ARRAY_LENGTH,
@@ -25,11 +25,11 @@ ENGINE_API void _dynamicArrayFieldSet(void* array, u64 field, u64 value);
 
 ENGINE_API void* _dynamicArrayResize(void* array);
 
-ENGINE_API void* _dynamicArrayPush(void* array, const void* valuePtr);
+ENGINE_API void* _dynamicArrayPush(void* array, const void* value_ptr);
 ENGINE_API void _dynamicArrayPop(void* array, void* dest);
 
 ENGINE_API void* _dynamicArrayPopAt(void* array, u64 index, void* dest);
-ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* valuePtr);
+ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* value_ptr);
 
 #define DYNAMIC_ARRAY_DEFAULT_CAPACITY 1
 #define DYNAMIC_ARRAY_RESIZE_FACTOR 2
@@ -40,30 +40,28 @@ ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* valuePtr);
 #define dynamicArrayReserve(type, capacity) \
     _dynamicArrayCreate(capacity, sizeof(type))
 
-#define dynamicArrayDestroy(array) \
-    _dynamicArrayDestroy(array)
+#define dynamicArrayDestroy(array) _dynamicArrayDestroy(array);
 
-#define dynamicArrayPush(array, value) {     \
-    typeof(value) temp = value;              \
-    array = _dynamicArrayPush(array, &temp); \
-}
+#define dynamicArrayPush(array, value)           \
+    {                                       \
+        typeof(value) temp = value;         \
+        array = _dynamicArrayPush(array, &temp); \
+    }
+// NOTE: could use __auto_type for temp above, but intellisense
+// for VSCode flags it as an unknown type. typeof() seems to
+// work just fine, though. Both are GNU extensions.
 
-/**
- * NOTE: could use __auto_type for temp above, but intellisense
- * for VSCode flags it as an unknown type. typeof() seems to
- * work just fine, though. Both are GNU extensions.
- */
+#define dynamicArrayPop(array, value_ptr) \
+    _dynamicArrayPop(array, value_ptr)
 
-#define dynamicArrayPop(array, valuePtr) \
-    _dynamicArrayPop(array, valuePtr)
+#define dynamicArrayInsertAt(array, index, value)           \
+    {                                                   \
+        typeof(value) temp = value;                     \
+        array = _dynamicArrayInsertAt(array, index, &temp); \
+    }
 
-#define dynamicInsertAt(array, index, value) {          \
-    typeof(value) temp = value;                         \
-    array = _dynamicArrayInsertAt(array, index, &temp); \
-}
-
-#define dynamicArrayPopAt(array, index, valuePtr) \
-    _dynamicArrayPopAt(array, index, valuePtr)
+#define dynamicArrayPopAt(array, index, value_ptr) \
+    _dynamicArrayPopAt(array, index, value_ptr)
 
 #define dynamicArrayClear(array) \
     _dynamicArrayFieldSet(array, DYNAMIC_ARRAY_LENGTH, 0)
@@ -79,5 +77,3 @@ ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* valuePtr);
 
 #define dynamicArrayLengthSet(array, value) \
     _dynamicArrayFieldSet(array, DYNAMIC_ARRAY_LENGTH, value)
-
-#endif /* __DYNAMIC_ARRAY_H__ */

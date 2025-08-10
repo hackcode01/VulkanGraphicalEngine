@@ -7,6 +7,8 @@
 #include "../core/event.h"
 #include "../core/input.h"
 
+#include "../containers/dynamic_array.h"
+
 #include <xcb/xcb.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h> /* sudo apt-get install libx11-dev */
@@ -14,7 +16,11 @@
 #include <X11/Xlib-xcb.h> /* sudo apt-get install libxkbcommon-x11-dev */
 #include <sys/time.h>
 
+#if _POSIX_C_SOURCE >= 199309L
+#include <time.h>
+#else
 #include <unistd.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -265,7 +271,7 @@ void* platformAllocate(u64 size, b8 aligned) {
     return malloc(size);
 }
 
-void platformFree(void* block) {
+void platformFree(void* block, b8 alig) {
     free(block);
 }
 
@@ -311,6 +317,10 @@ void platformSleep(u64 ms) {
     }
     usleep((ms % 1000) * 1000);
 #endif
+}
+
+void platformGetRequiredExtensionNames(const char*** namesDynamicArray) {
+    dynamicArrayPush(*namesDynamicArray, &"VK_KHR_xcb_surface")
 }
 
 /** Key translation. */

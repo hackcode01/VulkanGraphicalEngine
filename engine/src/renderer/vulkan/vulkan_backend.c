@@ -1,10 +1,23 @@
 #include "vulkan_backend.h"
 #include "vulkan_types.inl"
+#include "vulkan_platform.h"
 
 #include "../../core/logger.h"
+#include "../../core/engine_string.h"
+
+#include "../../containers/dynamic_array.h"
+
+#include "../../platform/platform.h"
 
 /** Static Vulkan context. */
 static VulkanContext context;
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+    void* userData
+);
 
 b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applicationName,
     struct PlatformState* platformState) {
@@ -21,23 +34,116 @@ b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applica
 
     VkInstanceCreateInfo createInfo = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledExtensionCount = 0;
-    createInfo.ppEnabledExtensionNames = NULL;
-    createInfo.enabledLayerCount = 0;
-    createInfo.ppEnabledLayerNames = NULL;
+    
+    /** Obtain a list of required extensions. */
+    const char** requiredExtensions = dynamicArrayCreate(const char*);
 
-    VkResult result = vkCreateInstance(&createInfo, context.allocator, &context.instance);
+    /** Generic surface extension. */
+    dynamicArrayPush(requiredExtensions, &VK_KHR_SURFACE_EXTENSION_NAME)
 
-    if (result != VK_SUCCESS) {
-        ENGINE_ERROR("vkCreateInstance failed with result: %u", result)
-        return FALSE;
+    /** Platform-specific extension(s) */
+    platformGetRequiredExtensionNames(&requiredExtensions);
+
+#if defined(_DEBUG)
+    /** Debug utilities. */
+    dynamicArrayPush(requiredExtensions, &VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+
+    ENGINE_DEBUG("Required extensions:")
+    u32 length = dynamicArrayLength(requiredExtensions);
+    for (u32 i = 0; i < length; ++i) {
+        ENGINE_DEBUG(requiredExtensions[i])
     }
+#endif
+
+    createInfo.enabledExtensionCount = dynamicArrayLength(requiredExtensions);
+    createInfo.ppEnabledExtensionNames = requiredExtensions;
+
+    /** Validation layers. */
+    const char** requiredValidationLayerNames = 0;
+    u32 requiredValidationLayerCount = 0;
+
+/**
+ * If validation should be done, get a list of the required validation layer names
+ * and make sure they exist. Validation layers should only be enabled on non-release builds.
+ */
+#if defined(_DEBUG)
+    ENGINE_INFO("Validation layers enabled. Enumerating...")
+
+    /** The list of validation layers required. */
+    requiredValidationLayerNames = dynamicArrayCreate(const char*);
+    dynamicArrayPush(requiredValidationLayerNames, &"VK_LAYER_KHRONOS_validation")
+    requiredValidationLayerCount = dynamicArrayLength(requiredValidationLayerNames);
+
+    /** Obtain a list of available validation layers. */
+    u32 availableLayerCount = 0;
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&availableLayerCount, 0))
+    VkLayerProperties* availableLayers = dynamicArrayReserve(VkLayerProperties,
+                                                             availableLayerCount);
+    VK_CHECK(vkEnumerateInstanceLayerProperties(&availableLayerCount, availableLayers))
+
+    /** Vefify all required layers are available. */
+    for (u32 i = 0; i < requiredValidationLayerCount; ++i) {
+        ENGINE_INFO("Searching for layer: %s...", requiredValidationLayerNames[i])
+        b8 found = FALSE;
+        for (u32 j = 0; j < availableLayerCount; ++j) {
+            if (stringsEqual(requiredValidationLayerNames[i], availableLayers[j].layerName)) {
+                found = TRUE;
+                ENGINE_INFO("Found.")
+                break;
+            }
+        }
+
+        if (!found) {
+            ENGINE_FATAL("Required validation layer is missing: %s",
+                requiredValidationLayerNames[i])
+            return FALSE;
+        }
+    }
+
+    ENGINE_INFO("All required validation layers are present.")
+#endif
+
+    createInfo.enabledLayerCount = requiredValidationLayerCount;
+    createInfo.ppEnabledLayerNames = requiredValidationLayerNames;
+
+    VK_CHECK(vkCreateInstance(&createInfo, context.allocator, &context.instance));
+    ENGINE_INFO("Vulkan Instance created.");
+
+#if defined(_DEBUG)
+    ENGINE_DEBUG("Creating Vulkan debugger...");
+    u32 logSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
+    debugCreateInfo.messageSeverity = logSeverity;
+    debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+    debugCreateInfo.pfnUserCallback = vkDebugCallback;
+
+    PFN_vkCreateDebugUtilsMessengerEXT func =
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(context.instance, "vkCreateDebugUtilsMessengerEXT");
+    ENGINE_ASSERT_MESSAGE(func, "Failed to create debug messenger!");
+    VK_CHECK(func(context.instance, &debugCreateInfo, context.allocator, &context.debugMessenger));
+    ENGINE_DEBUG("Vulkan debugger created.");
+#endif
 
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return TRUE;
 }
 
-void vulkanRendererBackendShutdown(RendererBackend* backend) {}
+void vulkanRendererBackendShutdown(RendererBackend* backend) {
+    ENGINE_DEBUG("Destroying Vulkan debugger...")
+
+    if (context.debugMessenger) {
+        PFN_vkDestroyDebugUtilsMessengerEXT func =
+            (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(context.instance,
+            "vkDestroyDebugUtilsMessengerEXT");
+        func(context.instance, context.debugMessenger, context.allocator);
+    }
+
+    ENGINE_DEBUG("Destroying Vulkan instance...")
+    vkDestroyInstance(context.instance, context.allocator);
+}
 
 void vulkanRendererBackendOnResize(RendererBackend* backend, u16 width, u16 height) {}
 
@@ -47,4 +153,36 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
 
 b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
     return TRUE;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+    const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+    void* userData
+) {
+    switch (messageSeverity) {
+        default:
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
+            ENGINE_ERROR(callbackData->pMessage)
+            break;
+        }
+
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: {
+            ENGINE_WARNING(callbackData->pMessage)
+            break;
+        }
+
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {
+            ENGINE_INFO(callbackData->pMessage)
+            break;
+        }
+
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
+            ENGINE_TRACE(callbackData->pMessage)
+            break;
+        }
+    }
+
+    return VK_FALSE;
 }

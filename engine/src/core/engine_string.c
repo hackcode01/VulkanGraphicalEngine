@@ -14,3 +14,7 @@ char* stringDuplicate(const char* str) {
 
     return copy;
 }
+
+b8 stringsEqual(const char* str_1, const char* str_2) {
+    return strcmp(str_1, str_2) == 0;
+}

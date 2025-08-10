@@ -11,7 +11,7 @@ static RendererBackend* backend = 0;
 
 b8 rendererInitialize(const char* applicationName,
     struct PlatformState* platformState) {
-    backend = engineAllocate(sizeof(rendererBackendCreate), MEMORY_TAG_RENDERER);
+    backend = engineAllocate(sizeof(RendererBackend), MEMORY_TAG_RENDERER);
 
     /** Make this configurable. */
     rendererBackendCreate(RENDERER_BACKEND_TYPE_VULKAN, platformState, backend);
