@@ -30,9 +30,10 @@
         "cstring": "c",
         "vulkan_backend.h": "c",
         "renderer_backend.h": "c",
-        "vulkan_types.inl": "c",
+        "vulkan_types.inl": "cpp",
         "renderer_types.inl": "c",
         "input.h": "c",
-        "clock.h": "c"
+        "clock.h": "c",
+        "dynamic_array.h": "c"
     }
 }

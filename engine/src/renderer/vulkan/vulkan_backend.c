@@ -8,6 +8,7 @@
 #include "../../containers/dynamic_array.h"
 
 #include "../../platform/platform.h"
+#include "vulkan_device.h"
 
 /** Static Vulkan context. */
 static VulkanContext context;
@@ -126,6 +127,22 @@ b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applica
     VK_CHECK(func(context.instance, &debugCreateInfo, context.allocator, &context.debugMessenger));
     ENGINE_DEBUG("Vulkan debugger created.");
 #endif
+
+    /** Surface in Engine. */
+    ENGINE_DEBUG("Creating Vulkan surface...")
+    if (!platformCreateVulkanSurface(platformState, &context)) {
+        ENGINE_ERROR("Failed to create platform surface!")
+        return FALSE;
+    }
+    ENGINE_DEBUG("Vulkan surface created!")
+
+    /**
+     * Device creation.
+     */
+    if (!vulkanDeviceCreate(&context)) {
+        ENGINE_ERROR("Failed to create device!")
+        return FALSE;
+    }
 
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return TRUE;

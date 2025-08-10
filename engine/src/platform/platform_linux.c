@@ -26,6 +26,11 @@
 #include <stdio.h>
 #include <string.h>
 
+/** For surface creation. */
+#define VK_USE_PLATFORM_XCB_KHR
+#include <vulkan/vulkan.h>
+#include "../renderer/vulkan/vulkan_types.inl"
+
 typedef struct InternalState {
     Display* display;
     xcb_connection_t* connection;
@@ -33,6 +38,7 @@ typedef struct InternalState {
     xcb_screen_t* screen;
     xcb_atom_t wmProtocols;
     xcb_atom_t wmDeleteWindow;
+    VkSurfaceKHR surface;
 } InternalState;
 
 /** Key translation. */
@@ -321,6 +327,30 @@ void platformSleep(u64 ms) {
 
 void platformGetRequiredExtensionNames(const char*** namesDynamicArray) {
     dynamicArrayPush(*namesDynamicArray, &"VK_KHR_xcb_surface")
+}
+
+/** Surface creation for Vulkan. */
+b8 platformCreateVulkanSurface(PlatformState *platformState, VulkanContext *context) {
+    // Simply cold-cast to the known type.
+    InternalState *state = (InternalState *)platformState->internalState;
+
+    VkXcbSurfaceCreateInfoKHR create_info = {VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR};
+    create_info.connection = state->connection;
+    create_info.window = state->window;
+
+    VkResult result = vkCreateXcbSurfaceKHR(
+        context->instance,
+        &create_info,
+        context->allocator,
+        &state->surface);
+    if (result != VK_SUCCESS) {
+        ENGINE_FATAL("Vulkan surface creation failed.");
+        return FALSE;
+    }
+
+    context->surface = state->surface;
+
+    return TRUE;
 }
 
 /** Key translation. */
