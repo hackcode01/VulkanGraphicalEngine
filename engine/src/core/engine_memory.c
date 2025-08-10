@@ -1,6 +1,7 @@
 #include "engine_memory.h"
 
 #include "core/logger.h"
+#include "core/engine_string.h"
 #include "platform/platform.h"
 
 #include <string.h>
@@ -111,7 +112,7 @@ char* engineGetMemoryUsageStr() {
         offset += length;
     }
 
-    char* out_string = strdup(buffer);
+    char* out_string = stringDuplicate(buffer);
 
     return out_string;
 }
