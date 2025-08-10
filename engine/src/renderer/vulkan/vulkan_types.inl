@@ -30,6 +30,10 @@ typedef struct VulkanDevice {
     i32 presentQueueIndex;
     i32 transferQueueIndex;
 
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    VkQueue transferQueue;
+
     VkPhysicalDeviceProperties properties;
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory;
