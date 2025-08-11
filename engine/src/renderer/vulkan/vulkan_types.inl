@@ -49,6 +49,33 @@ typedef struct VulkanImage {
     u32 height;
 } VulkanImage;
 
+typedef enum VulkanRenderPassState {
+    READY,
+    RECORDING,
+    IN_RENDER_PASS,
+    RECORDING_ENDED,
+    SUBMITTED,
+    NOT_ALLOCATED
+} VulkanRenderPassState;
+
+typedef struct VulkanRenderPass {
+    VkRenderPass handle;
+    f32 coordinate_x;
+    f32 coordinate_y;
+    f32 width;
+    f32 height;
+
+    f32 red;
+    f32 green;
+    f32 blue;
+    f32 alpha;
+
+    f32 depth;
+    u32 stencil;
+
+    VulkanRenderPassState state;
+} VulkanRenderPass;
+
 typedef struct VulkanSwapchain {
     VkSurfaceFormatKHR imageFormat;
     u8 maxFramesInFlight;
@@ -59,6 +86,22 @@ typedef struct VulkanSwapchain {
 
     VulkanImage depthAttachment;
 } VulkanSwapchain;
+
+typedef enum VulkanCommandBufferState {
+    COMMAND_BUFFER_STATE_READY,
+    COMMAND_BUFFER_STATE_RECORDING,
+    COMMAND_BUFFER_STATE_IN_RENDER_PASS,
+    COMMAND_BUFFER_STATE_RECORDING_ENDED,
+    COMMAND_BUFFER_STATE_SUBMITTED,
+    COMMAND_BUFFER_STATE_NOT_ALLOCATED
+} VulkanCommandBufferState;
+
+typedef struct VulkanCommandBuffer {
+    VkCommandBuffer handle;
+
+    /** Command buffer state. */
+    VulkanCommandBufferState state;
+} VulkanCommandBuffer;
 
 typedef struct VulkanContext {
     /** The framebuffer's current width. */
@@ -78,6 +121,8 @@ typedef struct VulkanContext {
     VulkanDevice device;
 
     VulkanSwapchain swapchain;
+    VulkanRenderPass mainRenderpass;
+
     u32 imageIndex;
     u32 currentFrame;
 

@@ -11,6 +11,7 @@
 
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_render_pass.h"
 
 /** Static Vulkan context. */
 static VulkanContext context;
@@ -159,12 +160,24 @@ b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applica
         &context.swapchain
     );
 
+    vulkanRenderPassCreate(
+        &context,
+        &context.mainRenderpass,
+        0, 0, context.framebufferWidth, context.framebufferHeight,
+        0.0f, 0.0f, 0.2f, 1.0f,
+        1.0f,
+        0
+    );
+
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return TRUE;
 }
 
 void vulkanRendererBackendShutdown(RendererBackend* backend) {
     /** Destroy in the opposite order of creation. */
+
+    /** Render pass. */
+    vulkanRenderPassDestroy(&context, &context.mainRenderpass);
 
     /** Swapchain */
     vulkanSwapchainDestroy(&context, &context.swapchain);

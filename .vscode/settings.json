@@ -34,6 +34,8 @@
         "renderer_types.inl": "c",
         "input.h": "c",
         "clock.h": "c",
-        "dynamic_array.h": "c"
+        "dynamic_array.h": "c",
+        "types.h": "c",
+        "vulkan_render_pass.h": "c"
     }
 }
