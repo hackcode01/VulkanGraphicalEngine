@@ -77,10 +77,6 @@ b8 vulkanDeviceCreate(VulkanContext* context) {
         queue_create_infos[i].queueFamilyIndex = indices[i];
         queue_create_infos[i].queueCount = 1;
 
-        if (indices[i] == context->device.graphicsQueueIndex) {
-            queue_create_infos[i].queueCount = 2;
-        }
-
         queue_create_infos[i].flags = 0;
         queue_create_infos[i].pNext = 0;
         f32 queue_priority = 1.0f;
@@ -247,6 +243,33 @@ void vulkanDeviceQuerySwapchainSupport(
             outSupportInfo->presentModes
         ))
     }
+}
+
+b8 vulkanDeviceDetectDepthFormat(VulkanDevice* device) {
+    /** Format candidates. */
+    const u64 candidateCount = 3ull;
+    VkFormat candidates[3] = {
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT
+    };
+
+    u32 flags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    for (u64 i = 0; i < candidateCount; ++i) {
+        VkFormatProperties properties;
+        vkGetPhysicalDeviceFormatProperties(device->physicalDevice, candidates[i],
+            &properties);
+
+        if ((properties.linearTilingFeatures & flags) == flags) {
+            device->depthFormat = candidates[i];
+            return TRUE;
+        } else if ((properties.optimalTilingFeatures & flags) == flags) {
+            device->depthFormat = candidates[i];
+            return TRUE;
+        }
+    }
+
+    return FALSE;
 }
 
 b8 selectPhysicalDevice(VulkanContext* context) {

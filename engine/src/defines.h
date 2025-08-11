@@ -107,4 +107,6 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected u8 to be 1 byte.");
 #endif
 #endif
 
+#define ENGINE_CLAMP(value, min, max) (value <= min) ? min : (value >= max) ? max : value;
+
 #endif /* __DEFINES_H__ */

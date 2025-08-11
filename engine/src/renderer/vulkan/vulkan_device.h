@@ -10,7 +10,10 @@ void vulkanDeviceDestroy(VulkanContext* context);
 void vulkanDeviceQuerySwapchainSupport(
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
+
     VulkanSwapchainSupportInfo* outSupportInfo
 );
+
+b8 vulkanDeviceDetectDepthFormat(VulkanDevice* device);
 
 #endif

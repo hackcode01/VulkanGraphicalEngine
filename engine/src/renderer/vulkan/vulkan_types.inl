@@ -37,9 +37,36 @@ typedef struct VulkanDevice {
     VkPhysicalDeviceProperties properties;
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory;
+
+    VkFormat depthFormat;
 } VulkanDevice;
 
+typedef struct VulkanImage {
+    VkImage handle;
+    VkDeviceMemory memory;
+    VkImageView view;
+    u32 width;
+    u32 height;
+} VulkanImage;
+
+typedef struct VulkanSwapchain {
+    VkSurfaceFormatKHR imageFormat;
+    u8 maxFramesInFlight;
+    VkSwapchainKHR handle;
+    u32 imageCount;
+    VkImage* images;
+    VkImageView* views;
+
+    VulkanImage depthAttachment;
+} VulkanSwapchain;
+
 typedef struct VulkanContext {
+    /** The framebuffer's current width. */
+    u32 framebufferWidth;
+
+    /** The framebuffer's current height. */
+    u32 framebufferHeight;
+
     VkInstance instance;
     VkAllocationCallbacks* allocator;
     VkSurfaceKHR surface;
@@ -49,6 +76,14 @@ typedef struct VulkanContext {
 #endif
 
     VulkanDevice device;
+
+    VulkanSwapchain swapchain;
+    u32 imageIndex;
+    u32 currentFrame;
+
+    b8 recreatingSwapchain;
+
+    i32 (*findMemoryIndex)(u32 typeFilter, u32 propertyFlags);
 } VulkanContext;
 
 #endif

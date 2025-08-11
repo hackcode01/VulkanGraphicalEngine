@@ -8,7 +8,9 @@
 #include "../../containers/dynamic_array.h"
 
 #include "../../platform/platform.h"
+
 #include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 
 /** Static Vulkan context. */
 static VulkanContext context;
@@ -20,8 +22,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
     void* userData
 );
 
+i32 findMemoryIndex(u32 typeFilter, u32 propertyFlags);
+
 b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applicationName,
     struct PlatformState* platformState) {
+    /** Function pointers. */
+    context.findMemoryIndex = findMemoryIndex;
+
     /** Custom allocator. */
     context.allocator = 0;
 
@@ -144,11 +151,33 @@ b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applica
         return FALSE;
     }
 
+    /** Swapchain. */
+    vulkanSwapchainCreate(
+        &context,
+        context.framebufferWidth,
+        context.framebufferHeight,
+        &context.swapchain
+    );
+
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return TRUE;
 }
 
 void vulkanRendererBackendShutdown(RendererBackend* backend) {
+    /** Destroy in the opposite order of creation. */
+
+    /** Swapchain */
+    vulkanSwapchainDestroy(&context, &context.swapchain);
+
+    ENGINE_DEBUG("Destroying Vulkan device...")
+    vulkanDeviceDestroy(&context);
+
+    ENGINE_DEBUG("Destroying Vulkan surface...")
+    if (context.surface) {
+        vkDestroySurfaceKHR(context.instance, context.surface, context.allocator);
+        context.surface = 0;
+    }
+
     ENGINE_DEBUG("Destroying Vulkan debugger...")
 
     if (context.debugMessenger) {
@@ -202,4 +231,21 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
     }
 
     return VK_FALSE;
+}
+
+i32 findMemoryIndex(u32 typeFilter, u32 propertyFlags) {
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(context.device.physicalDevice, &memoryProperties);
+
+    for (u32 i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        /** Check each memory type to see if its bit is set to 1. */
+        if (typeFilter & (1 << i) &&
+            (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) ==
+                propertyFlags) {
+            return i;
+        }
+    }
+
+    ENGINE_WARNING("Unable to find suitable memory type!")
+    return -1;
 }
