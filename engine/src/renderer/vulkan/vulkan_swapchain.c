@@ -4,7 +4,7 @@
 #include "vulkan_image.h"
 
 #include "../../core/logger.h"
-#include "../../core/engine_memory.h"
+#include "../../engine_memory/engine_memory.h"
 
 void create(VulkanContext* context, u32 width, u32 height, VulkanSwapchain* swapchain);
 void destroy(VulkanContext* context, VulkanSwapchain* swapchain);

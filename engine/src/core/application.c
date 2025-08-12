@@ -4,7 +4,7 @@
 #include "logger.h"
 
 #include "../platform/platform.h"
-#include "engine_memory.h"
+#include "../engine_memory/engine_memory.h"
 #include "event.h"
 #include "input.h"
 #include "clock.h"

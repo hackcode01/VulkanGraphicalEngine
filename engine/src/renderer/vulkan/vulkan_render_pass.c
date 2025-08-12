@@ -1,6 +1,6 @@
 #include "vulkan_render_pass.h"
 
-#include "../../core/engine_memory.h"
+#include "../../engine_memory/engine_memory.h"
 
 void vulkanRenderPassCreate(
     VulkanContext* context,

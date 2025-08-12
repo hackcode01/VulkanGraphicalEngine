@@ -1,6 +1,6 @@
 #include "vulkan_command_buffer.h"
 
-#include "../../core/engine_memory.h"
+#include "../../engine_memory/engine_memory.h"
 
 void vulkanCommandBufferAllocate(
     VulkanContext* context,

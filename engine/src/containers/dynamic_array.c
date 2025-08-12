@@ -1,7 +1,7 @@
 #include "containers/dynamic_array.h"
 
-#include "core/engine_memory.h"
-#include "core/logger.h"
+#include "../engine_memory/engine_memory.h"
+#include "../core/logger.h"
 
 void* _dynamicArrayCreate(u64 length, u64 stride) {
     u64 header_size = DYNAMIC_ARRAY_FIELD_LENGTH * sizeof(u64);

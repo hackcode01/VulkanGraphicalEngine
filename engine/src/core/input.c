@@ -1,6 +1,6 @@
 #include "input.h"
 #include "event.h"
-#include "engine_memory.h"
+#include "../engine_memory/engine_memory.h"
 #include "logger.h"
 
 typedef struct KeyboardState {

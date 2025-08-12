@@ -2,7 +2,7 @@
 #include "renderer_backend.h"
 
 #include "../core/logger.h"
-#include "../core/engine_memory.h"
+#include "../engine_memory/engine_memory.h"
 
 struct PlatformState;
 

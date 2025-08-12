@@ -1,6 +1,6 @@
 #include "event.h"
 
-#include "engine_memory.h"
+#include "../engine_memory/engine_memory.h"
 #include "../src/containers/dynamic_array.h"
 
 typedef struct RegisteredEvent {

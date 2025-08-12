@@ -2,7 +2,7 @@
 
 #include "vulkan_device.h"
 
-#include "../../core/engine_memory.h"
+#include "../../engine_memory/engine_memory.h"
 #include "../../core/logger.h"
 
 void vulkanImageCreate(

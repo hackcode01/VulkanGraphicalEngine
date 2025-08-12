@@ -1,8 +1,8 @@
 #include "engine_memory.h"
+#include "engine_string.h"
 
-#include "core/logger.h"
-#include "core/engine_string.h"
-#include "platform/platform.h"
+#include "../core/logger.h"
+#include "../platform/platform.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -29,7 +29,8 @@ static const char* memoryTagStrings[MEMORY_TAG_MAX_TAGS] = {
     "TRANSFORM  ",
     "ENTITY     ",
     "ENTITY_NODE",
-    "SCENE      "};
+    "SCENE      "
+};
 
 static struct MemoryStats stats;
 
