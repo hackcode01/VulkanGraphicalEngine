@@ -34,6 +34,8 @@ typedef struct VulkanDevice {
     VkQueue presentQueue;
     VkQueue transferQueue;
 
+    VkCommandPool graphicsCommandPool;
+
     VkPhysicalDeviceProperties properties;
     VkPhysicalDeviceFeatures features;
     VkPhysicalDeviceMemoryProperties memory;
@@ -122,6 +124,9 @@ typedef struct VulkanContext {
 
     VulkanSwapchain swapchain;
     VulkanRenderPass mainRenderpass;
+
+    /** Dynamic array. */
+    VulkanCommandBuffer* graphicsCommandBuffers;
 
     u32 imageIndex;
     u32 currentFrame;
