@@ -277,7 +277,7 @@ void* platformAllocate(u64 size, b8 aligned) {
     return malloc(size);
 }
 
-void platformFree(void* block, b8 alig) {
+void platformFree(void* block, b8 aligned) {
     free(block);
 }
 

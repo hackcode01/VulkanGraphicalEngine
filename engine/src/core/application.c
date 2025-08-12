@@ -89,8 +89,6 @@ b8 applicationRun() {
     clockStart(&appState.clock);
     clockUpdate(&appState.clock);
     appState.lastTime = appState.clock.elapsed;
-    f64 running_time = 0;
-    u8 frame_count = 0;
     f64 target_frame_seconds = 1.0f / 60;
 
     ENGINE_INFO(engineGetMemoryUsageStr());
@@ -128,7 +126,6 @@ b8 applicationRun() {
             // Figure out how long the frame took and, if below
             f64 frame_end_time = platformGetAbsoluteTime();
             f64 frame_elapsed_time = frame_end_time - frame_start_time;
-            running_time += frame_elapsed_time;
             f64 remaining_seconds = target_frame_seconds - frame_elapsed_time;
 
             if (remaining_seconds > 0) {
@@ -139,8 +136,6 @@ b8 applicationRun() {
                 if (remaining_ms > 0 && limit_frames) {
                     platformSleep(remaining_ms - 1);
                 }
-
-                frame_count++;
             }
 
             // NOTE: Input update/state copying should always be handled
