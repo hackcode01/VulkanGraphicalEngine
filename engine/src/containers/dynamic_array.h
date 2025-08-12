@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defines.h"
+#include "../defines.h"
 
 /*
 Memory layout
@@ -43,8 +43,8 @@ ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* value_ptr);
 #define dynamicArrayDestroy(array) _dynamicArrayDestroy(array);
 
 #define dynamicArrayPush(array, value)           \
-    {                                       \
-        typeof(value) temp = value;         \
+    {                                            \
+        typeof(value) temp = value;              \
         array = _dynamicArrayPush(array, &temp); \
     }
 // NOTE: could use __auto_type for temp above, but intellisense
@@ -55,8 +55,8 @@ ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* value_ptr);
     _dynamicArrayPop(array, value_ptr)
 
 #define dynamicArrayInsertAt(array, index, value)           \
-    {                                                   \
-        typeof(value) temp = value;                     \
+    {                                                       \
+        typeof(value) temp = value;                         \
         array = _dynamicArrayInsertAt(array, index, &temp); \
     }
 

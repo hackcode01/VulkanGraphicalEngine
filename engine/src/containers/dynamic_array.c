@@ -1,4 +1,4 @@
-#include "containers/dynamic_array.h"
+#include "dynamic_array.h"
 
 #include "../engine_memory/engine_memory.h"
 #include "../core/logger.h"

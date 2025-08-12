@@ -9,13 +9,16 @@ void vulkanRenderPassCreate(
     f32 red, f32 green, f32 blue, f32 alpha,
     f32 depth, u32 stencil) {
     /** Main subpass. */
-    VkSubpassDescription subpass = {};
+    VkSubpassDescription subpass;
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
     /** Attachments: make this configurable. */
     u32 attachmentDescriptionCount = 2;
+#if defined(_MSC_VER) && defined(_WIN32)
+    VkAttachmentDescription attachmentDescriptions[2];
+#else
     VkAttachmentDescription attachmentDescriptions[attachmentDescriptionCount];
-
+#endif
     VkAttachmentDescription colorAttachment;
     colorAttachment.format = context->swapchain.imageFormat.format;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -37,7 +40,7 @@ void vulkanRenderPassCreate(
     subpass.pColorAttachments = &colorAttachmentReference;
 
     /** Depth attachment, if there is one. */
-    VkAttachmentDescription depthAttachment = {};
+    VkAttachmentDescription depthAttachment;
     depthAttachment.format = context->device.depthFormat;
     depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;

@@ -6,11 +6,123 @@ project(${PROJECT_NAME})
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
+find_package(Vulkan REQUIRED COMPONENTS glslc)
+find_package(glad CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
+set(INCLUDE_FILES
+    src/defines.h
+    src/game_types.h
+
+    src/containers/dynamic_array.h
+
+    src/core/application.h
+    src/core/asserts.h
+    src/core/clock.h
+    src/core/event.h
+    src/core/input.h
+    src/core/logger.h
+
+    src/engine_memory/engine_memory.h
+    src/engine_memory/engine_string.h
+
+    src/platform/platform.h
+
+    src/renderer/renderer_backend.h
+    src/renderer/renderer_frontend.h
+    src/renderer/renderer_types.inl
+
+    src/renderer/vulkan/vulkan_backend.h
+    src/renderer/vulkan/vulkan_command_buffer.h
+    src/renderer/vulkan/vulkan_device.h
+    src/renderer/vulkan/vulkan_image.h
+    src/renderer/vulkan/vulkan_platform.h
+    src/renderer/vulkan/vulkan_render_pass.h
+    src/renderer/vulkan/vulkan_swapchain.h
+    src/renderer/vulkan/vulkan_types.inl
+)
+
+set(SOURCE_FILES
+    src/containers/dynamic_array.c
+
+    src/core/application.c
+    src/core/clock.c
+    src/core/event.c
+    src/core/input.c
+    src/core/logger.c
+
+    src/engine_memory/engine_memory.c
+    src/engine_memory/engine_string.c
+
+    src/platform/platform_linux.c
+    src/platform/platform_win32.c
+
+    src/renderer/renderer_backend.c
+    src/renderer/renderer_frontend.c
+
+    src/renderer/vulkan/vulkan_backend.c
+    src/renderer/vulkan/vulkan_command_buffer.c
+    src/renderer/vulkan/vulkan_device.c
+    src/renderer/vulkan/vulkan_image.c
+    src/renderer/vulkan/vulkan_render_pass.c
+    src/renderer/vulkan/vulkan_swapchain.c
+)
+
+add_library(${PROJECT_NAME} STATIC ${INCLUDE_FILES} ${SOURCE_FILES})
+target_compile_options(${PROJECT_NAME} PRIVATE -g -shared -Wall)
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
-    ${ENGINE_ALL_SOURCES}
+    ${INCLUDE_FILES} ${SOURCE_FILES}
 )
+
+target_compile_features(${PROJECT_NAME} PUBLIC c_std_17)
+
+add_subdirectory(../external/glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+add_subdirectory(../external/spdlog ${CMAKE_CURRENT_BINARY_DIR}/spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE spdlog)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Vulkan::Vulkan
+    glm::glm
+    glad::glad
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${glm_SOURCE_DIR}>
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    GLFW_INCLUDE_NONE
+)
+
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        opengl32
+        gdi32
+    )
+elseif(APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(IOKIT_LIBRARY IOKit)
+    find_library(CORE_VIDEO_LIBRARY CoreVideo)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${COCOA_LIBRARY}
+        ${IOKIT_LIBRARY}
+        ${CORE_VIDEO_LIBRARY}
+    )
+else()
+    find_package(X11 REQUIRED)
+    find_package(Threads REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        X11
+        pthread
+        dl
+        ${CMAKE_THREAD_LIBS_INIT}
+    )
+endif()
