@@ -21,13 +21,13 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/engine/src/**",
-                "${VULKAN_SDK}/include"
+                "C:/VUlkanSDK/1.4.321.0/Include/**"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
-                "KEXPORT"
+                "ENGINE_EXPORT"
             ],
             "windowsSdkVersion": "10.0.18362.3",
             "compilerPath": "D:\\LLVM\\bin\\clang.exe",
