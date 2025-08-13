@@ -131,9 +131,7 @@ typedef struct VulkanContext {
     VkAllocationCallbacks* allocator;
     VkSurfaceKHR surface;
 
-#if defined(_DEBUG)
     VkDebugUtilsMessengerEXT debugMessenger;
-#endif
 
     VulkanDevice device;
 

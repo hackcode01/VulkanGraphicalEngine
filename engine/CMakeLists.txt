@@ -12,8 +12,6 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
 find_package(Vulkan REQUIRED COMPONENTS glslc)
-find_package(glad CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
 
 set(INCLUDE_FILES
     src/defines.h
@@ -40,6 +38,8 @@ set(INCLUDE_FILES
     src/renderer/vulkan/vulkan_backend.h
     src/renderer/vulkan/vulkan_command_buffer.h
     src/renderer/vulkan/vulkan_device.h
+    src/renderer/vulkan/vulkan_fence.h
+    src/renderer/vulkan/vulkan_framebuffer.h
     src/renderer/vulkan/vulkan_image.h
     src/renderer/vulkan/vulkan_platform.h
     src/renderer/vulkan/vulkan_render_pass.h
@@ -68,6 +68,8 @@ set(SOURCE_FILES
     src/renderer/vulkan/vulkan_backend.c
     src/renderer/vulkan/vulkan_command_buffer.c
     src/renderer/vulkan/vulkan_device.c
+    src/renderer/vulkan/vulkan_fence.c
+    src/renderer/vulkan/vulkan_framebuffer.c
     src/renderer/vulkan/vulkan_image.c
     src/renderer/vulkan/vulkan_render_pass.c
     src/renderer/vulkan/vulkan_swapchain.c
@@ -90,8 +92,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE spdlog)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Vulkan::Vulkan
-    glm::glm
-    glad::glad
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

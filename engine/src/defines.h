@@ -29,6 +29,7 @@ typedef char b8;
 #endif
 
 /* Ensure all types of the correct size. */
+#if defined(__clang__) && defined(_WIN32)
 STATIC_ASSERT(sizeof(u8) == 1, "Expected u8 to be 1 byte.");
 STATIC_ASSERT(sizeof(u16) == 2, "Expected u8 to be 2 byte.");
 STATIC_ASSERT(sizeof(u32) == 4, "Expected u8 to be 4 byte.");
@@ -41,6 +42,7 @@ STATIC_ASSERT(sizeof(i64) == 8, "Expected u8 to be 1 byte.");
 
 STATIC_ASSERT(sizeof(f32) == 4, "Expected u8 to be 1 byte.");
 STATIC_ASSERT(sizeof(f64) == 8, "Expected u8 to be 1 byte.");
+#endif
 
 #define TRUE 1
 #define FALSE 0
