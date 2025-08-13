@@ -4,10 +4,24 @@
 
 void vulkanRenderPassCreate(
     VulkanContext* context,
-    VulkanRenderPass* outRenderpass,
+    VulkanRenderPass* outRenderPass,
     f32 coordinate_x, f32 coordinate_y, f32 width, f32 height,
     f32 red, f32 green, f32 blue, f32 alpha,
     f32 depth, u32 stencil) {
+
+    outRenderPass->coordinate_x = coordinate_x;
+    outRenderPass->coordinate_y = coordinate_y;
+    outRenderPass->width = width;
+    outRenderPass->height = height;
+
+    outRenderPass->red = red;
+    outRenderPass->green = green;
+    outRenderPass->blue = blue;
+    outRenderPass->alpha = alpha;
+
+    outRenderPass->depth = depth;
+    outRenderPass->stencil = stencil;
+
     /** Main subpass. */
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -96,7 +110,7 @@ void vulkanRenderPassCreate(
         context->device.logicalDevice,
         &renderPassCreateInfo,
         context->allocator,
-        &outRenderpass->handle))
+        &outRenderPass->handle))
 }
 
 void vulkanRenderPassDestroy(VulkanContext* context, VulkanRenderPass* renderpass) {
