@@ -22,7 +22,7 @@ typedef struct {
     PlatformState platform;
     i16 width;
     i16 height;
-    clock clock;
+    Clock clock;
     f64 lastTime;
 } ApplicationState;
 

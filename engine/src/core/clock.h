@@ -3,21 +3,21 @@
 
 #include "../defines.h"
 
-typedef struct clock {
+typedef struct Clock {
     f64 startTime;
     f64 elapsed;
-} clock;
+} Clock;
 
 /**
  * Updated the provided clock. Should be called just before checking elapsed time.
  * Has no effect on non-started clocks.
  */
-void clockUpdate(clock* clock);
+void clockUpdate(Clock* clock);
 
 /** Starts the provided clock. Resets elapsed time. */
-void clockStart(clock* clock);
+void clockStart(Clock* clock);
 
 /** Stops the provided clock. Does not reset elapsed time. */
-void clockStop(clock* clock);
+void clockStop(Clock* clock);
 
 #endif
