@@ -26,4 +26,6 @@ ENGINE_API b8 applicationCreate(struct Game* gameInstance);
 
 ENGINE_API b8 applicationRun();
 
+void applicationGetFramebufferSize(u32* width, u32* height);
+
 #endif

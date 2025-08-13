@@ -1,1 +1,1 @@
-cd ./bin && ./editor.exe
+cd bin && editor.exe
