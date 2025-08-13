@@ -45,6 +45,7 @@ set(INCLUDE_FILES
     src/renderer/vulkan/vulkan_render_pass.h
     src/renderer/vulkan/vulkan_swapchain.h
     src/renderer/vulkan/vulkan_types.inl
+    src/renderer/vulkan/vulkan_utils.h
 )
 
 set(SOURCE_FILES
@@ -73,6 +74,7 @@ set(SOURCE_FILES
     src/renderer/vulkan/vulkan_image.c
     src/renderer/vulkan/vulkan_render_pass.c
     src/renderer/vulkan/vulkan_swapchain.c
+    src/renderer/vulkan/vulkan_utils.c
 )
 
 add_library(${PROJECT_NAME} STATIC ${INCLUDE_FILES} ${SOURCE_FILES})
