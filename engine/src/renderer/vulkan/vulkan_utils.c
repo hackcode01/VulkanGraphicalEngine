@@ -230,7 +230,7 @@ const char* vulkanResultString(VkResult result, b8 getExtented) {
     }
 }
 
-b8 vulkanIsSuccess(VkResult result) {
+b8 vulkanResultIsSuccess(VkResult result) {
     /** From: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkResult.html */
     switch (result) {
         /** Success Codes. */

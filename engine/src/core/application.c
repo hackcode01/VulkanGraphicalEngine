@@ -32,6 +32,7 @@ static ApplicationState appState;
 /* Event handlers. */
 b8 applicationOnEvent(u16 code, void* sender, void* listenerInstance, EventContext context);
 b8 applicationOnKey(u16 code, void* sender, void* listenerInstance, EventContext context);
+b8 applicationOnResize(u16 code, void* sender, void* listenerInstance, EventContext context);
 
 b8 applicationCreate(Game* gameInstance) {
     if (initialized) {
@@ -56,6 +57,7 @@ b8 applicationCreate(Game* gameInstance) {
     eventRegister(EVENT_CODE_APPLICATION_QUIT, 0, applicationOnEvent);
     eventRegister(EVENT_CODE_KEY_PRESSED, 0, applicationOnKey);
     eventRegister(EVENT_CODE_KEY_RELEASED, 0, applicationOnKey);
+    eventRegister(EVENT_CODE_RESIZED, 0, applicationOnResize);
 
     if (!platformStartup(
         &appState.platform,
@@ -214,5 +216,37 @@ b8 applicationOnKey(u16 code, void* sender, void* listenerInstance,
         }
     }
 
+    return FALSE;
+}
+
+b8 applicationOnResize(u16 code, void* sender, void* listenerInstance, EventContext context) {
+    if (code == EVENT_CODE_RESIZED) {
+        u16 width = context.data.uint16[0];
+        u16 height = context.data.uint16[1];
+
+        /** Check if different. If so, trigger a resize event. */
+        if (width != appState.width || height != appState.height) {
+            appState.width = width;
+            appState.height = height;
+
+            ENGINE_DEBUG("Window resize: %i, %i", width, height);
+
+            /** Handle minimization. */
+            if (width == 0 || height == 0) {
+                ENGINE_INFO("Window minimized, saspending application.")
+                appState.isSuspended = TRUE;
+                return TRUE;
+            } else {
+                if (appState.isSuspended) {
+                    ENGINE_INFO("Window restored, resuming application.")
+                    appState.isSuspended = FALSE;
+                }
+                appState.gameInstance->onResize(appState.gameInstance, width, height);
+                rendererOnResized(width, height);
+            }
+        }
+    }
+
+    /** Event purposely not handled to allow other listeners to get this. */
     return FALSE;
 }

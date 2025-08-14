@@ -239,7 +239,22 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, u32 message, WPARAM wParam, LPAR
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
-        case WM_SIZE: {} break;
+        case WM_SIZE: {
+            RECT rectangle;
+            GetClientRect(hwnd, &rectangle);
+            u32 width = rectangle.right - rectangle.left;
+            u32 height = rectangle.bottom - rectangle.top;
+
+            /**
+             * Fire the event. The application layer should pick this up,
+             * but not handle it as it shoulds be visible to other parts of
+             * the application.
+             */
+            EventContext context;
+            context.data.uint16[0] = (u16)width;
+            context.data.uint16[1] = (u16)height;
+            eventFire(EVENT_CODE_RESIZED, 0, context);
+        } break;
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN:
         case WM_KEYUP:

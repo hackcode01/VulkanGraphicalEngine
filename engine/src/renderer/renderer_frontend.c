@@ -41,6 +41,15 @@ b8 rendererEndFrame(f32 deltaTime) {
     return result;
 }
 
+void rendererOnResized(u16 width, u16 height) {
+    if (backend) {
+        backend->resized(backend, width, height);
+    } else {
+        ENGINE_WARNING("Renderer backend does not exist to accept resize: %i %i",
+            width, height)
+    }
+}
+
 b8 rendererDrawFrame(RenderPacket* packet) {
     /** If the begin frame returned successfully, mid-frame operations may continue. */
     if (rendererBeginFrame(packet->deltaTime)) {
