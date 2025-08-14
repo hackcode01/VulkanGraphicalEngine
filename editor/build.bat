@@ -18,4 +18,4 @@ SET linkerFlags=-L../bin/ -lengine.lib
 SET defines=-D_DEBUG -DENGINE_IMPORT
 
 ECHO "Building %assembly%%..."
-clang %cFilenames% %compilerFlags% -o ../bin/%assembly%.exe %defines% %includeFlags% %linkerFlags%
+C:/LLVM/bin/clang %cFilenames% %compilerFlags% -o ../bin/%assembly%.exe %defines% %includeFlags% %linkerFlags%
