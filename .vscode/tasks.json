@@ -59,10 +59,24 @@
             "type": "shell",
             "label": "Clean Everything",
             "windows": {
-                "command": "${workspaceFolder}\\clean_all.bat"
+                "command": "${workspaceFolder}/clean_all.bat"
             },
             "linux": {
                 "command": "${workspaceFolder}"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "Post-Build",
+            "windows": {
+                "command": "${workspaceFolder}/post_build.bat",
+            },
+            "linux": {
+                "command": "${workspaceFolder}/post_build.sh",
             },
             "options": {
                 "cwd": "${workspaceFolder}"
