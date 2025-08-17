@@ -29,6 +29,9 @@ set(INCLUDE_FILES
     src/engine_memory/engine_memory.h
     src/engine_memory/engine_string.h
 
+    src/engine_math/engine_math.h
+    src/engine_math/math_types.h
+
     src/platform/platform.h
 
     src/renderer/renderer_backend.h

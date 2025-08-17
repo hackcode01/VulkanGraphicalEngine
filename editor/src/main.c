@@ -24,7 +24,6 @@ b8 createGame(Game* outGame) {
     return TRUE;
 }
 
-
 int main(void) {
     initializeMemory();
 
