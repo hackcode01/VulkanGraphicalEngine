@@ -63,6 +63,8 @@ set(SOURCE_FILES
     src/engine_memory/engine_memory.c
     src/engine_memory/engine_string.c
 
+    src/engine_math/engine_math.c
+
     src/platform/platform_linux.c
     src/platform/platform_win32.c
 
