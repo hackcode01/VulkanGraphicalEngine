@@ -21,7 +21,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/engine/src/**",
-                "C:/VUlkanSDK/1.4.321.0/Include/**"
+                "C:/VUlkanSDK/1.4.321.1/Include/**"
             ],
             "defines": [
                 "_DEBUG",
@@ -30,7 +30,7 @@
                 "ENGINE_EXPORT"
             ],
             "windowsSdkVersion": "10.0.18362.3",
-            "compilerPath": "D:\\LLVM\\bin\\clang.exe",
+            "compilerPath": "D:/clang_llvm-20.1.8-x86_64-pc-windows-msvc/bin/clang.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-clang-x64",

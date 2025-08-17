@@ -73,5 +73,6 @@ CMakeLists.txt.user*
 .rcc/
 .uic/
 
-build
-bin
+obj/
+build/
+bin/

@@ -100,23 +100,6 @@ b8 platformStartup(
     /* Values to be sent over XCB (bg colour, events). */
     u32 valueList[] = {state->screen->black_pixel, eventValues};
 
-    /* Create the window. */
-    xcb_void_cookie_t cookie = xcb_create_window(
-        state->connection,
-        XCB_COPY_FROM_PARENT,
-        state->window,
-        state->screen->root,
-        x,
-        y,
-        width,
-        height,
-        0,
-        XCB_WINDOW_CLASS_INPUT_OUTPUT,
-        state->screen->root_visual,
-        eventMask,
-        valueList
-    );
-
     /* Change the title. */
     xcb_change_property(
         state->connection,
