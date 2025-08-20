@@ -12,10 +12,10 @@ b8 rendererBackendCreate(RendererBackendType type,
         outRendererBackend->endFrame = vulkanRendererBackendEndFrame;
         outRendererBackend->resized = vulkanRendererBackendOnResize;
 
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 void rendererBackendDestroy(RendererBackend* rendererBackend) {

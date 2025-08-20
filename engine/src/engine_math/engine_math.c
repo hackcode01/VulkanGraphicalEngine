@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-static b8 randSeeded = FALSE;
+static b8 randSeeded = false;
 
 /**
  * Note that these are here in order to prevent having to import the
@@ -37,7 +37,7 @@ f32 engine_abs(f32 x) {
 i32 engineRandom() {
     if (!randSeeded) {
         srand((u32)platformGetAbsoluteTime());
-        randSeeded = TRUE;
+        randSeeded = true;
     }
 
     return rand();
@@ -46,7 +46,7 @@ i32 engineRandom() {
 i32 engineRandomInRange(i32 min, i32 max) {
     if (!randSeeded) {
         srand((u32)platformGetAbsoluteTime());
-        randSeeded = TRUE;
+        randSeeded = true;
     }
 
     return (rand() % (max - min + 1)) + min;

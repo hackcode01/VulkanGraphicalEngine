@@ -66,7 +66,7 @@ b8 platformStartup(
 
     if (xcb_connection_has_error(state->connection)) {
         ENGINE_FATAL("Failed to connect to X server via XCB.")
-        return FALSE;
+        return false;
     }
 
     /* Get data from the X server */
@@ -153,10 +153,10 @@ b8 platformStartup(
     i32 stream_result = xcb_flush(state->connection);
     if (stream_result <= 0) {
         ENGINE_FATAL("An error occurred when flusing the stream: %d", stream_result)
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 void platformShutdown(PlatformState* platformState) {
@@ -176,7 +176,7 @@ b8 platformPumpMessages(PlatformState* platformState) {
     xcb_generic_event_t* event;
     xcb_client_message_event_t* clientMessageEvent;
 
-    b8 quitFlagged = FALSE;
+    b8 quitFlagged = false;
 
     /* Poll for events until null is returned. */
     while (event != 0) {
@@ -262,7 +262,7 @@ b8 platformPumpMessages(PlatformState* platformState) {
 
                 /* Window close. */
                 if (clientMessageEvent->data.data32[0] == state->wmDeleteWindow) {
-                    quitFlagged = TRUE;
+                    quitFlagged = true;
                 }
             } break;
             default:
@@ -346,12 +346,12 @@ b8 platformCreateVulkanSurface(PlatformState *platformState, VulkanContext *cont
         &state->surface);
     if (result != VK_SUCCESS) {
         ENGINE_FATAL("Vulkan surface creation failed.");
-        return FALSE;
+        return false;
     }
 
     context->surface = state->surface;
 
-    return TRUE;
+    return true;
 }
 
 /** Key translation. */

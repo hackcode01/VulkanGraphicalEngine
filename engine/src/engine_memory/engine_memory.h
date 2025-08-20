@@ -7,6 +7,7 @@
 typedef enum MemoryTag {
     MEMORY_TAG_UNKNOWN,
     MEMORY_TAG_ARRAY,
+    MEMORY_TAG_LINEAR_ALLOCATOR,
     MEMORY_TAG_DYNAMIC_ARRAY,
     MEMORY_TAG_DICTIONARY,
     MEMORY_TAG_RING_QUEUE,
@@ -40,5 +41,7 @@ ENGINE_API void* engineCopyMemory(void* dest, const void* source, u64 size);
 ENGINE_API void* engineSetMemory(void* dest, i32 value, u64 size);
 
 ENGINE_API char* engineGetMemoryUsageStr();
+
+ENGINE_API u64 getMemoryAllocCount();
 
 #endif

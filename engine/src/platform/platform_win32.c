@@ -59,7 +59,7 @@ b8 platformStartup(
     if (!RegisterClassA(&wndClassA)) {
         MessageBoxA(0, "Window registration failed", "Error",
                     MB_ICONEXCLAMATION | MB_OK);
-        return FALSE;
+        return false;
     }
 
     /* Create Window. */
@@ -101,7 +101,7 @@ b8 platformStartup(
         MessageBoxA(NULL, "Window creation failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
         ENGINE_FATAL("Window creation failed!")
 
-        return FALSE;
+        return false;
     } else {
         state->hwnd = handle;
     }
@@ -123,7 +123,7 @@ b8 platformStartup(
     clockFrequency = 1.0 / (f64)frequency.QuadPart;
     QueryPerformanceCounter(&startTime);
 
-    return TRUE;
+    return true;
 }
 
 void platformShutdown(PlatformState* platformState) {
@@ -144,7 +144,7 @@ b8 platformPumpMessages(PlatformState* platformState) {
         DispatchMessageA(&message);
     }
 
-    return TRUE;
+    return true;
 }
 
 void* platformAllocate(u64 size, b8 aligned) {
@@ -219,11 +219,11 @@ b8 platformCreateVulkanSurface(PlatformState* platformState, VulkanContext* cont
 
     if (result != VK_SUCCESS) {
         ENGINE_FATAL("Vulkan surface creation failed!")
-        return FALSE;
+        return false;
     }
 
     context->surface = state->surface;
-    return TRUE;
+    return true;
 }
 
 LRESULT CALLBACK win32ProcessMessage(HWND hwnd, u32 message, WPARAM wParam, LPARAM lParam) {
@@ -235,7 +235,7 @@ LRESULT CALLBACK win32ProcessMessage(HWND hwnd, u32 message, WPARAM wParam, LPAR
             /* Fire an event for the application to quit. */
             EventContext data = {};
             eventFire(EVENT_CODE_APPLICATION_QUIT, 0, data);
-            return TRUE;
+            return true;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;

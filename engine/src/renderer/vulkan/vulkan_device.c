@@ -38,7 +38,7 @@ b8 physicalDeviceMeetsRequirements(
 
 b8 vulkanDeviceCreate(VulkanContext* context) {
     if (!selectPhysicalDevice(context)) {
-        return FALSE;
+        return false;
     }
 
     ENGINE_INFO("Creating logical device...")
@@ -149,7 +149,7 @@ b8 vulkanDeviceCreate(VulkanContext* context) {
     ))
     ENGINE_INFO("Graphics command pool created.")
 
-    return TRUE;
+    return true;
 }
 
 void vulkanDeviceDestroy(VulkanContext* context) {
@@ -282,14 +282,14 @@ b8 vulkanDeviceDetectDepthFormat(VulkanDevice* device) {
 
         if ((properties.linearTilingFeatures & flags) == flags) {
             device->depthFormat = candidates[i];
-            return TRUE;
+            return true;
         } else if ((properties.optimalTilingFeatures & flags) == flags) {
             device->depthFormat = candidates[i];
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 b8 selectPhysicalDevice(VulkanContext* context) {
@@ -298,7 +298,7 @@ b8 selectPhysicalDevice(VulkanContext* context) {
 
     if (physicalDeviceCount == 0) {
         ENGINE_FATAL("No devices which support Vulkan were found.")
-        return FALSE;
+        return false;
     }
 
     VkPhysicalDevice physicalDevices[physicalDeviceCount];
@@ -318,11 +318,11 @@ b8 selectPhysicalDevice(VulkanContext* context) {
          * configuration.
          */
         VulkanPhysicalDeviceRequirements requirements = {};
-        requirements.graphics = TRUE;
-        requirements.present = TRUE;
-        requirements.transfer = TRUE;
-        requirements.samplerAnisotropy = TRUE;
-        requirements.discrete_gpu = TRUE;
+        requirements.graphics = true;
+        requirements.present = true;
+        requirements.transfer = true;
+        requirements.samplerAnisotropy = true;
+        requirements.discrete_gpu = true;
         requirements.deviceExtensionNames = dynamicArrayCreate(const char*);
         dynamicArrayPush(requirements.deviceExtensionNames, &VK_KHR_SWAPCHAIN_EXTENSION_NAME)
 
@@ -400,11 +400,11 @@ b8 selectPhysicalDevice(VulkanContext* context) {
     /** Ensure a device was selected. */
     if (!context->device.physicalDevice) {
         ENGINE_ERROR("No physical devices were found which meet the requirements.");
-        return FALSE;
+        return false;
     }
 
     ENGINE_INFO("Physical device selected.");
-    return TRUE;
+    return true;
 } 
 
 b8 physicalDeviceMeetsRequirements(
@@ -425,7 +425,7 @@ b8 physicalDeviceMeetsRequirements(
     if (requirements->discrete_gpu) {
         if (properties->deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
             ENGINE_INFO("Device is not a discrete GPU, and one is required. Skipping.");
-            return FALSE;
+            return false;
         }
     }
 
@@ -507,7 +507,7 @@ b8 physicalDeviceMeetsRequirements(
                 engineFree(out_swapchain_support->presentModes, sizeof(VkPresentModeKHR) * out_swapchain_support->presentModeCount, MEMORY_TAG_RENDERER);
             }
             ENGINE_INFO("Required swapchain support not present, skipping device.");
-            return FALSE;
+            return false;
         }
 
         /** Device extensions. */
@@ -529,10 +529,10 @@ b8 physicalDeviceMeetsRequirements(
 
                 u32 required_extension_count = dynamicArrayLength(requirements->deviceExtensionNames);
                 for (u32 i = 0; i < required_extension_count; ++i) {
-                    b8 found = FALSE;
+                    b8 found = false;
                     for (u32 j = 0; j < available_extension_count; ++j) {
                         if (stringsEqual(requirements->deviceExtensionNames[i], available_extensions[j].extensionName)) {
-                            found = TRUE;
+                            found = true;
                             break;
                         }
                     }
@@ -540,7 +540,7 @@ b8 physicalDeviceMeetsRequirements(
                     if (!found) {
                         ENGINE_INFO("Required extension not found: '%s', skipping device.", requirements->deviceExtensionNames[i]);
                         engineFree(available_extensions, sizeof(VkExtensionProperties) * available_extension_count, MEMORY_TAG_RENDERER);
-                        return FALSE;
+                        return false;
                     }
                 }
             }
@@ -552,12 +552,12 @@ b8 physicalDeviceMeetsRequirements(
         /** Sampler anisotropy. */
         if (requirements->samplerAnisotropy && !features->samplerAnisotropy) {
             ENGINE_INFO("Device does not support samplerAnisotropy, skipping.");
-            return FALSE;
+            return false;
         }
 
         // Device meets all requirements.
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }

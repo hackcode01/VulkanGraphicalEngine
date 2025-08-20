@@ -49,7 +49,7 @@ void* engineAllocate(u64 size, MemoryTag tag) {
     stats.tagged_allocations[tag] += size;
 
     // TODO: Memory alignment
-    void* block = platformAllocate(size, FALSE);
+    void* block = platformAllocate(size, false);
     platformZeroMemory(block, size);
     return block;
 }
@@ -62,7 +62,7 @@ void engineFree(void* block, u64 size, MemoryTag tag) {
     stats.total_allocated -= size;
     stats.tagged_allocations[tag] -= size;
 
-    platformFree(block, FALSE);
+    platformFree(block, false);
 }
 
 void* engineZeroMemory(void* block, u64 size) {

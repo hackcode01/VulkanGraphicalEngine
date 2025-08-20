@@ -5,15 +5,15 @@
 b8 gameInitialize(Game* gameInstance) {
     ENGINE_DEBUG("gameInitialize() called!")
 
-    return TRUE;
+    return true;
 }
 
 b8 gameUpdate(Game* gameInstance, f32 deltaTime) {
-    return TRUE;
+    return true;
 }
 
 b8 gameRender(Game* gameInstance, f32 deltaTime) {
-    return TRUE;
+    return true;
 }
 
 void gameOnResize(Game* gameInstance, u32 width, u32 height) {}

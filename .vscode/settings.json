@@ -36,6 +36,8 @@
         "clock.h": "c",
         "dynamic_array.h": "c",
         "types.h": "c",
-        "vulkan_render_pass.h": "c"
+        "vulkan_render_pass.h": "c",
+        "expect.h": "c",
+        "linear_allocator.h": "c"
     }
 }

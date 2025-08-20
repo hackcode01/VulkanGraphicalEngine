@@ -247,7 +247,7 @@ b8 vulkanResultIsSuccess(VkResult result) {
         case VK_OPERATION_DEFERRED_KHR:
         case VK_OPERATION_NOT_DEFERRED_KHR:
         case VK_PIPELINE_COMPILE_REQUIRED_EXT: {
-            return TRUE;
+            return true;
         }
 
         /** Error codes. */
@@ -275,7 +275,7 @@ b8 vulkanResultIsSuccess(VkResult result) {
 
         case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
         case VK_ERROR_UNKNOWN: {
-            return FALSE;
+            return false;
         }
     }
 }

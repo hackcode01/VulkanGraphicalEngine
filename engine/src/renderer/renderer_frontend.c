@@ -19,10 +19,10 @@ b8 rendererInitialize(const char* applicationName,
 
     if (!backend->initialize(backend, applicationName, platformState)) {
         ENGINE_FATAL("Renderer backend failed to initialize. Shutting down.")
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 void rendererShutdown() {
@@ -58,9 +58,9 @@ b8 rendererDrawFrame(RenderPacket* packet) {
 
         if (!result) {
             ENGINE_ERROR("rendererEndFrame failed. Application shutting down...")
-            return FALSE;
+            return false;
         }
     }
 
-    return TRUE;
+    return true;
 }

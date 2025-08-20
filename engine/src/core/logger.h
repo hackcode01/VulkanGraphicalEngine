@@ -30,8 +30,16 @@ typedef enum {
     FAILED_APPLICATION_SHUTDOWN_GRACEFULLY = -4
 } TypeErrors_t;
 
-b8 initializeLogging();
-void shutdownLogging();
+/**
+ * @brief Initializes logging system. Call twice; once with state = 0 to get required memory size,
+ * then a second time passing allocated memory to state.
+ * 
+ * @param memoryRequirement A pointer to hold the required memory size of internal state.
+ * @param state 0 if just requesting memory requirement, otherwise allocated block of memory.
+ * @return b8 True on success; otherwise false.
+ */
+b8 initializeLogging(u64* memoryRequirement, void* state);
+void shutdownLogging(void* state);
 
 ENGINE_API void logOutput(LogLevel level, const char* message, ...);
 

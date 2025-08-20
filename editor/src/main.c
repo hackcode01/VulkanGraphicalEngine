@@ -21,13 +21,11 @@ b8 createGame(Game* outGame) {
     /** Create the game state. */
     outGame->state = engineAllocate(sizeof(GameState), MEMORY_TAG_GAME);
 
-    return TRUE;
+    return true;
 }
 
 int main(void) {
-    initializeMemory();
-
-    /* Request the game instance from the application. */
+    /** Request the game instance from the application. */
     Game gameInstance;
     if (!createGame(&gameInstance)) {
         ENGINE_FATAL("Could not create game!")
@@ -52,8 +50,6 @@ int main(void) {
         ENGINE_INFO("Application didn't shutdown gracefully.")
         return FAILED_APPLICATION_SHUTDOWN_GRACEFULLY;
     }
-
-    shutdownMemory();
 
     return 0;
 }

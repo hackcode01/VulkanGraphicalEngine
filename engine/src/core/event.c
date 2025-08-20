@@ -23,20 +23,20 @@ typedef struct EventSystemState {
 /**
  * Event system internal state.
  */
-static b8 isInitialized = FALSE;
+static b8 isInitialized = false;
 static EventSystemState state;
 
 b8 eventInitialize() {
-    if (isInitialized == TRUE) {
-        return FALSE;
+    if (isInitialized == true) {
+        return false;
     }
 
-    isInitialized = FALSE;
+    isInitialized = false;
     engineZeroMemory(&state, sizeof(state));
 
-    isInitialized = TRUE;
+    isInitialized = true;
 
-    return TRUE;
+    return true;
 }
 
 void eventShutdown() {
@@ -50,8 +50,8 @@ void eventShutdown() {
 }
 
 b8 eventRegister(u16 code, void* listener, PFN_on_event on_event) {
-    if (isInitialized == FALSE) {
-        return FALSE;
+    if (isInitialized == false) {
+        return false;
     }
 
     if (state.registered[code].events == 0) {
@@ -61,7 +61,7 @@ b8 eventRegister(u16 code, void* listener, PFN_on_event on_event) {
     u64 registeredCount = dynamicArrayLength(state.registered[code].events);
     for (u64 i = 0; i < registeredCount; ++i) {
         if (state.registered[code].events[i].listener == listener) {
-            return FALSE;
+            return false;
         }
     }
 
@@ -71,17 +71,17 @@ b8 eventRegister(u16 code, void* listener, PFN_on_event on_event) {
     event.callback = on_event;
     dynamicArrayPush(state.registered[code].events, event);
 
-    return TRUE;
+    return true;
 }
 
 b8 eventUnregister(u16 code, void* listener, PFN_on_event on_event) {
-    if (isInitialized == FALSE) {
-        return FALSE;
+    if (isInitialized == false) {
+        return false;
     }
 
     /* On nothing is registered for the code, boot out. */
     if (state.registered[code].events == 0) {
-        return FALSE;
+        return false;
     }
 
     u64 registeredCount = dynamicArrayLength(state.registered[code].events);
@@ -92,22 +92,22 @@ b8 eventUnregister(u16 code, void* listener, PFN_on_event on_event) {
             /* Found one, remove it. */
             RegisteredEvent popped_event;
             dynamicArrayPopAt(state.registered[code].events, i, &popped_event);
-            return TRUE;
+            return true;
         }
     }
 
     /* Not found. */
-    return FALSE;
+    return false;
 }
 
 b8 eventFire(u16 code, void* sender, EventContext context) {
-    if (isInitialized == FALSE) {
-        return FALSE;
+    if (isInitialized == false) {
+        return false;
     }
 
     /* If nothing is registered fot the code, boot out. */
     if (state.registered[code].events == 0) {
-        return FALSE;
+        return false;
     }
 
     u64 registeredCount = dynamicArrayLength(state.registered[code].events);
@@ -116,10 +116,10 @@ b8 eventFire(u16 code, void* sender, EventContext context) {
 
         if (event.callback(code, sender, event.listener, context)) {
             /* Message has been handled, do not send to other listeners. */
-            return TRUE;
+            return true;
         }
     }
 
     /* Not found. */
-    return FALSE;
+    return false;
 }

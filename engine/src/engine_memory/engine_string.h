@@ -12,4 +12,16 @@ ENGINE_API char* stringDuplicate(const char* str);
  */
 ENGINE_API b8 stringsEqual(const char* str_1, const char* str_2);
 
-#endif /* __ENGINE_STRING_H__ */
+/** Performs string formatting to dest given format string and parameters. */
+ENGINE_API i32 stringFormat(char* dest, const char* format, ...);
+
+/**
+ * Performs variadic string formatting to dest given format string and va_list.
+ * @param dest The destination for the formatted string.
+ * @param format The string to be formatted.
+ * @param va_list The variadic argument list.
+ * @returns The size of the data written.
+ */
+ENGINE_API i32 stringFormatV(char* dest, const char* format, void* va_list);
+
+#endif /** __ENGINE_STRING_H__ */

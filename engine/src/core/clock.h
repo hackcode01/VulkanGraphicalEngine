@@ -12,12 +12,12 @@ typedef struct Clock {
  * Updated the provided clock. Should be called just before checking elapsed time.
  * Has no effect on non-started clocks.
  */
-void clockUpdate(Clock* clock);
+ENGINE_API clockUpdate(Clock* clock);
 
 /** Starts the provided clock. Resets elapsed time. */
-void clockStart(Clock* clock);
+ENGINE_API clockStart(Clock* clock);
 
 /** Stops the provided clock. Does not reset elapsed time. */
-void clockStop(Clock* clock);
+ENGINE_API clockStop(Clock* clock);
 
 #endif

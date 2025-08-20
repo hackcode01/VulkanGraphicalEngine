@@ -22,17 +22,17 @@ typedef struct InputState {
 } InputState;
 
 /* Internal input state. */
-static b8 initialized = FALSE;
+static b8 initialized = false;
 static InputState state = {};
 
 void inputInitialize() {
     engineZeroMemory(&state, sizeof(InputState));
-    initialized = TRUE;
+    initialized = true;
     ENGINE_INFO("Input subsystem initialized.")
 }
 
 void inputShutdown() {
-    initialized = FALSE;
+    initialized = false;
 }
 
 void inputUpdate(f64 deltaTime) {
@@ -99,67 +99,67 @@ void inputProcessMouseWheel(i8 z_delta) {
 
 b8 inputIsKeyDown(Keys key) {
     if (!initialized) {
-        return FALSE;
+        return false;
     }
 
-    return state.keyboardCurrent.keys[key] == TRUE;
+    return state.keyboardCurrent.keys[key] == true;
 }
 
 b8 inputIsKeyUp(Keys key) {
     if (!initialized) {
-        return TRUE;
+        return true;
     }
 
-    return state.keyboardCurrent.keys[key] == FALSE;
+    return state.keyboardCurrent.keys[key] == false;
 }
 
 b8 inputWasKeyDown(Keys key) {
     if (!initialized) {
-        return FALSE;
+        return false;
     }
 
-    return state.keyboardPrevious.keys[key] == TRUE;
+    return state.keyboardPrevious.keys[key] == true;
 }
 
 b8 inputWasKeyUp(Keys key) {
     if (!initialized) {
-        return TRUE;
+        return true;
     }
 
-    return state.keyboardPrevious.keys[key] == FALSE;
+    return state.keyboardPrevious.keys[key] == false;
 }
 
 /* mouse input. */
 b8 inputIsButtonDown(MouseButtons button) {
     if (!initialized) {
-        return FALSE;
+        return false;
     }
 
-    return state.mouseCurrent.buttons[button] == TRUE;
+    return state.mouseCurrent.buttons[button] == true;
 }
 
 b8 inputIsButtonUp(MouseButtons button) {
     if (!initialized) {
-        return TRUE;
+        return true;
     }
 
-    return state.mouseCurrent.buttons[button] == FALSE;
+    return state.mouseCurrent.buttons[button] == false;
 }
 
 b8 inputWasButtonDown(MouseButtons button) {
     if (!initialized) {
-        return FALSE;
+        return false;
     }
 
-    return state.mousePrevious.buttons[button] == TRUE;
+    return state.mousePrevious.buttons[button] == true;
 }
 
 b8 inputWasButtonUp(MouseButtons button) {
     if (!initialized) {
-        return TRUE;
+        return true;
     }
 
-    return state.mousePrevious.buttons[button] == FALSE;
+    return state.mousePrevious.buttons[button] == false;
 }
 
 void inputGetMousePosition(i32* x, i32* y) {
