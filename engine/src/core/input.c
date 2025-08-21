@@ -48,7 +48,25 @@ void inputUpdate(f64 deltaTime) {
 }
 
 void inputProcessKey(Keys key, b8 pressed) {
-    /* Only handle this if the state actually changed. */
+    if (key == KEY_LALT) {
+        ENGINE_INFO("Left alt pressed.")
+    } else if (key == KEY_RALT) {
+        ENGINE_INFO("Right alt pressed.")
+    }
+
+    if (key == KEY_LCONTROL) {
+        ENGINE_INFO("Left ctrl pressed.")
+    } else if (key == KEY_RCONTROL) {
+        ENGINE_INFO("Right ctrl pressed.")
+    }
+
+    if (key == KEY_LSHIFT) {
+        ENGINE_INFO("Left shift pressed.")
+    } else if (key == KEY_RSHIFT) {
+        ENGINE_INFO("Right shift pressed.")
+    }
+
+    /** Only handle this if the state actually changed. */
     if (state.keyboardCurrent.keys[key] != pressed) {
         /* Update internal state. */
         state.keyboardCurrent.keys[key] = pressed;

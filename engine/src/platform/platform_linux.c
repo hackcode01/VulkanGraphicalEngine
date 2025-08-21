@@ -507,8 +507,10 @@ Keys translateKeycode(u32 x_keycode) {
             return KEY_LCONTROL;
         case XK_Control_R:
             return KEY_RCONTROL;
-        case XK_Menu:
-            return KEY_RMENU;
+        case XK_Alt_L:
+            return KEY_LALT;
+        case XK_Alt_R:
+            return KEY_RALT;
 
         case XK_semicolon:
             return KEY_SEMICOLON;

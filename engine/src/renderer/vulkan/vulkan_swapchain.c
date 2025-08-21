@@ -93,7 +93,6 @@ void vulkanSwapchainPresent(
 
 void create(VulkanContext* context, u32 width, u32 height, VulkanSwapchain* swapchain) {
     VkExtent2D swapchain_extent = {width, height};
-    swapchain->maxFramesInFlight = 2;
 
     /** Choose a swap surface format. */
     b8 found = false;
@@ -127,7 +126,7 @@ void create(VulkanContext* context, u32 width, u32 height, VulkanSwapchain* swap
         &context->device.swapchainSupport);
 
     /** Swapchain extent. */
-    if (context->device.swapchainSupport.capabilities.currentExtent.width != UINT32_MAX) {
+    if (context->device.swapchainSupport.capabilities.currentExtent.width != 0xffffffffU) {
         swapchain_extent = context->device.swapchainSupport.capabilities.currentExtent;
     }
 
@@ -137,16 +136,18 @@ void create(VulkanContext* context, u32 width, u32 height, VulkanSwapchain* swap
     swapchain_extent.width = ENGINE_CLAMP(swapchain_extent.width, min.width, max.width)
     swapchain_extent.height = ENGINE_CLAMP(swapchain_extent.height, min.height, max.height)
 
-    u32 image_count = context->device.swapchainSupport.capabilities.minImageCount + 1;
+    u32 imageCount = context->device.swapchainSupport.capabilities.minImageCount + 1;
     if (context->device.swapchainSupport.capabilities.maxImageCount > 0 &&
-        image_count > context->device.swapchainSupport.capabilities.maxImageCount) {
-        image_count = context->device.swapchainSupport.capabilities.maxImageCount;
+        imageCount > context->device.swapchainSupport.capabilities.maxImageCount) {
+        imageCount = context->device.swapchainSupport.capabilities.maxImageCount;
     }
+
+    swapchain->maxFramesInFlight = imageCount - 1;
 
     /** Swapchain create info. */
     VkSwapchainCreateInfoKHR swapchain_create_info = {VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
     swapchain_create_info.surface = context->surface;
-    swapchain_create_info.minImageCount = image_count;
+    swapchain_create_info.minImageCount = imageCount;
     swapchain_create_info.imageFormat = swapchain->imageFormat.format;
     swapchain_create_info.imageColorSpace = swapchain->imageFormat.colorSpace;
     swapchain_create_info.imageExtent = swapchain_extent;

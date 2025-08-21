@@ -8,13 +8,14 @@
 #include <stdio.h>
 
 struct MemoryStats {
-    u64 total_allocated;
-    u64 tagged_allocations[MEMORY_TAG_MAX_TAGS];
+    u64 totalAllocated;
+    u64 taggedAllocations[MEMORY_TAG_MAX_TAGS];
 };
 
 static const char* memoryTagStrings[MEMORY_TAG_MAX_TAGS] = {
     "UNKNOWN    ",
     "ARRAY      ",
+    "LINEAR_ALLC",
     "DARRAY     ",
     "DICT       ",
     "RING_QUEUE ",
@@ -32,21 +33,38 @@ static const char* memoryTagStrings[MEMORY_TAG_MAX_TAGS] = {
     "SCENE      "
 };
 
-static struct MemoryStats stats;
+typedef struct MemorySystemState {
+    struct MemoryStats stats;
+    u64 allocationCount;
+} MemorySystemState;
 
-void initializeMemory() {
-    platformZeroMemory(&stats, sizeof(stats));
+static MemorySystemState* s_statePtr;
+
+void initializeMemory(u64* memoryRequirement, void* state) {
+    *memoryRequirement = sizeof(MemorySystemState);
+    if (state == 0) {
+        return;
+    }
+
+    s_statePtr = state;
+    s_statePtr->allocationCount = 0;
+    platformZeroMemory(&s_statePtr->stats, sizeof(s_statePtr->stats));
 }
 
-void shutdownMemory() {}
+void shutdownMemory() {
+    s_statePtr = 0;
+}
 
 void* engineAllocate(u64 size, MemoryTag tag) {
     if (tag == MEMORY_TAG_UNKNOWN) {
         ENGINE_WARNING("kallocate called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
     }
 
-    stats.total_allocated += size;
-    stats.tagged_allocations[tag] += size;
+    if (s_statePtr) {
+        s_statePtr->stats.totalAllocated += size;
+        s_statePtr->stats.taggedAllocations[tag] += size;
+        ++(s_statePtr->allocationCount);
+    }
 
     // TODO: Memory alignment
     void* block = platformAllocate(size, false);
@@ -59,8 +77,8 @@ void engineFree(void* block, u64 size, MemoryTag tag) {
         ENGINE_WARNING("kfree called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
     }
 
-    stats.total_allocated -= size;
-    stats.tagged_allocations[tag] -= size;
+    s_statePtr->stats.totalAllocated -= size;
+    s_statePtr->stats.taggedAllocations[tag] -= size;
 
     platformFree(block, false);
 }
@@ -87,19 +105,19 @@ char* engineGetMemoryUsageStr() {
     for (u32 i = 0; i < MEMORY_TAG_MAX_TAGS; ++i) {
         char unit[4] = "XiB";
         float amount = 1.0f;
-        if (stats.tagged_allocations[i] >= gib) {
+        if (s_statePtr->stats.taggedAllocations[i] >= gib) {
             unit[0] = 'G';
-            amount = stats.tagged_allocations[i] / (float)gib;
-        } else if (stats.tagged_allocations[i] >= mib) {
+            amount = s_statePtr->stats.taggedAllocations[i] / (float)gib;
+        } else if (s_statePtr->stats.taggedAllocations[i] >= mib) {
             unit[0] = 'M';
-            amount = stats.tagged_allocations[i] / (float)mib;
-        } else if (stats.tagged_allocations[i] >= kib) {
+            amount = s_statePtr->stats.taggedAllocations[i] / (float)mib;
+        } else if (s_statePtr->stats.taggedAllocations[i] >= kib) {
             unit[0] = 'K';
-            amount = stats.tagged_allocations[i] / (float)kib;
+            amount = s_statePtr->stats.taggedAllocations[i] / (float)kib;
         } else {
             unit[0] = 'B';
             unit[1] = 0;
-            amount = (float)stats.tagged_allocations[i];
+            amount = (float)s_statePtr->stats.taggedAllocations[i];
         }
 
         i32 length = snprintf(buffer + offset, 8000, "  %s: %.2f%s\n", memoryTagStrings[i], amount, unit);
@@ -107,4 +125,12 @@ char* engineGetMemoryUsageStr() {
     }
     char* out_string = stringDuplicate(buffer);
     return out_string;
+}
+
+u64 getMemoryAllocationCount() {
+    if (s_statePtr) {
+        return s_statePtr->allocationCount;
+    }
+
+    return 0;
 }

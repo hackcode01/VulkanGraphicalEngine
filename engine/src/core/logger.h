@@ -39,6 +39,7 @@ typedef enum {
  * @return b8 True on success; otherwise false.
  */
 b8 initializeLogging(u64* memoryRequirement, void* state);
+
 void shutdownLogging(void* state);
 
 ENGINE_API void logOutput(LogLevel level, const char* message, ...);

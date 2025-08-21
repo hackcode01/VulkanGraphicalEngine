@@ -27,7 +27,7 @@ typedef enum MemoryTag {
     MEMORY_TAG_MAX_TAGS
 } MemoryTag;
 
-ENGINE_API void initializeMemory();
+ENGINE_API void initializeMemory(u64* memoryRequirement, void* state);
 ENGINE_API void shutdownMemory();
 
 ENGINE_API void* engineAllocate(u64 size, MemoryTag tag);
@@ -42,6 +42,6 @@ ENGINE_API void* engineSetMemory(void* dest, i32 value, u64 size);
 
 ENGINE_API char* engineGetMemoryUsageStr();
 
-ENGINE_API u64 getMemoryAllocCount();
+ENGINE_API u64 getMemoryAllocationCount();
 
 #endif

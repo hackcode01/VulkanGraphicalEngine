@@ -38,6 +38,7 @@
         "types.h": "c",
         "vulkan_render_pass.h": "c",
         "expect.h": "c",
-        "linear_allocator.h": "c"
+        "linear_allocator.h": "c",
+        "engine_string.h": "c"
     }
 }

@@ -8,10 +8,10 @@
 #include "event.h"
 #include "input.h"
 #include "clock.h"
+#include "../engine_memory/linear_allocator.h"
+#include "../../../editor/src/game.h"
 
 #include "../renderer/renderer_frontend.h"
-
-#include "../../../editor/src/game.h"
 
 #include <stdio.h>
 
@@ -24,10 +24,16 @@ typedef struct {
     i16 height;
     Clock clock;
     f64 lastTime;
+    LinearAllocator systemsAllocator;
+
+    u64 memorySystemMemoryRequirement;
+    void* memorySystemState;
+
+    u64 loggingSystemMemoryRequirement;
+    void* loggingSystemState;
 } ApplicationState;
 
-static b8 initialized = false;
-static ApplicationState appState;
+static ApplicationState* appState;
 
 /* Event handlers. */
 b8 applicationOnEvent(u16 code, void* sender, void* listenerInstance, EventContext context);
@@ -35,19 +41,40 @@ b8 applicationOnKey(u16 code, void* sender, void* listenerInstance, EventContext
 b8 applicationOnResize(u16 code, void* sender, void* listenerInstance, EventContext context);
 
 b8 applicationCreate(Game* gameInstance) {
-    if (initialized) {
+    if (gameInstance->applicationState) {
         ENGINE_ERROR("ApplicationCreate called more than once.")
         return false;
     }
 
-    appState.gameInstance = gameInstance;
+    gameInstance->applicationState = engineAllocate(sizeof(ApplicationState),
+        MEMORY_TAG_APPLICATION);
+    appState = gameInstance->applicationState;
+    appState->gameInstance = gameInstance;
+    appState->isRunning = false;
+    appState->isSuspended = false;
 
-    /* Initialize subsystems. */
-    initializeLogging();
+    u64 systemsAllocatorTotalSize = 64 * 1024 * 1024;
+    linearAllocatorCreate(systemsAllocatorTotalSize, 0, &appState->systemsAllocator);
+
+    /** Initialize subsystems. */
+
+    /** Memory. */
+    initializeMemory(&appState->memorySystemMemoryRequirement, 0);
+    appState->memorySystemState = linearAllocatorAllocate(&appState->systemsAllocator,
+        appState->memorySystemMemoryRequirement);
+    initializeMemory(&appState->memorySystemMemoryRequirement, appState->memorySystemState);
+
+    /** Logging. */
+    initializeLogging(&appState->loggingSystemMemoryRequirement, 0);
+    appState->loggingSystemState = linearAllocatorAllocate(&appState->systemsAllocator,
+        appState->loggingSystemMemoryRequirement);
+
+    if (!initializeLogging(&appState->loggingSystemMemoryRequirement, appState->loggingSystemState)) {
+        ENGINE_ERROR("Failed to initialize logging system; shutting down.");
+        return false;
+    }
+
     inputInitialize();
-
-    appState.isRunning = true;
-    appState.isSuspended = false;
 
     if (!eventInitialize()) {
         ENGINE_ERROR("Event system failed initialization. Application cannot continue.")
@@ -60,7 +87,7 @@ b8 applicationCreate(Game* gameInstance) {
     eventRegister(EVENT_CODE_RESIZED, 0, applicationOnResize);
 
     if (!platformStartup(
-        &appState.platform,
+        &appState->platform,
         gameInstance->appConfig.name,
         gameInstance->appConfig.startPositionX,
         gameInstance->appConfig.startPositionY,
@@ -70,53 +97,54 @@ b8 applicationCreate(Game* gameInstance) {
     }
 
     /** Renderer startup */
-    if (!rendererInitialize(gameInstance->appConfig.name, &appState.platform)) {
+    if (!rendererInitialize(gameInstance->appConfig.name, &appState->platform)) {
         ENGINE_FATAL("Failed to initialize renderer. Aborting application.")
         return false;
     }
 
     /* Initialize the game. */
-    if (!appState.gameInstance->initialize(appState.gameInstance)) {
+    if (!appState->gameInstance->initialize(appState->gameInstance)) {
         ENGINE_FATAL("Game failed to initialize")
         return false;
     }
 
-    appState.gameInstance->onResize(appState.gameInstance, appState.width, appState.height);
-    initialized = true;
+    appState->gameInstance->onResize(appState->gameInstance, appState->width, appState->height);
 
     return true;
 }
 
 b8 applicationRun() {
-    clockStart(&appState.clock);
-    clockUpdate(&appState.clock);
-    appState.lastTime = appState.clock.elapsed;
+    appState->isRunning = true;
+    clockStart(&appState->clock);
+    clockUpdate(&appState->clock);
+    appState->lastTime = appState->clock.elapsed;
+
     f64 target_frame_seconds = 1.0f / 60;
 
     ENGINE_INFO(engineGetMemoryUsageStr());
 
-    while (appState.isRunning) {
-        if (!platformPumpMessages(&appState.platform)) {
-            appState.isRunning = false;
+    while (appState->isRunning) {
+        if (!platformPumpMessages(&appState->platform)) {
+            appState->isRunning = false;
         }
 
-        if (!appState.isSuspended) {
+        if (!appState->isSuspended) {
             // Update clock and get delta time.
-            clockUpdate(&appState.clock);
-            f64 current_time = appState.clock.elapsed;
-            f64 delta = (current_time - appState.lastTime);
+            clockUpdate(&appState->clock);
+            f64 current_time = appState->clock.elapsed;
+            f64 delta = (current_time - appState->lastTime);
             f64 frame_start_time = platformGetAbsoluteTime();
 
-            if (!appState.gameInstance->update(appState.gameInstance, (f32)delta)) {
+            if (!appState->gameInstance->update(appState->gameInstance, (f32)delta)) {
                 ENGINE_FATAL("Game update failed, shutting down.");
-                appState.isRunning = false;
+                appState->isRunning = false;
                 break;
             }
 
             // Call the game's render routine.
-            if (!appState.gameInstance->render(appState.gameInstance, (f32)delta)) {
+            if (!appState->gameInstance->render(appState->gameInstance, (f32)delta)) {
                 ENGINE_FATAL("Game render failed, shutting down.");
-                appState.isRunning = false;
+                appState->isRunning = false;
                 break;
             }
 
@@ -147,11 +175,11 @@ b8 applicationRun() {
             inputUpdate(delta);
 
             // Update last time
-            appState.lastTime = current_time;
+            appState->lastTime = current_time;
         }
     }
 
-    appState.isRunning = false;
+    appState->isRunning = false;
 
     // Shutdown event system.
     eventUnregister(EVENT_CODE_APPLICATION_QUIT, 0, applicationOnEvent);
@@ -162,14 +190,16 @@ b8 applicationRun() {
 
     rendererShutdown();
 
-    platformShutdown(&appState.platform);
+    platformShutdown(&appState->platform);
+
+    shutdownMemory();
 
     return true;
 }
 
 void applicationGetFramebufferSize(u32* width, u32* height) {
-    *width = appState.width;
-    *height = appState.height;
+    *width = appState->width;
+    *height = appState->height;
 }
 
 b8 applicationOnEvent(u16 code, void* sender, void* listenerInstance,
@@ -178,7 +208,7 @@ b8 applicationOnEvent(u16 code, void* sender, void* listenerInstance,
         case EVENT_CODE_APPLICATION_QUIT: {
             printf("\n\n");
             ENGINE_INFO("EVENT_CODE_APPLICATION_QUIT recieved, shutting down.\n")
-            appState.isRunning = false;
+            appState->isRunning = false;
             return true;
         }
     }
@@ -225,23 +255,23 @@ b8 applicationOnResize(u16 code, void* sender, void* listenerInstance, EventCont
         u16 height = context.data.uint16[1];
 
         /** Check if different. If so, trigger a resize event. */
-        if (width != appState.width || height != appState.height) {
-            appState.width = width;
-            appState.height = height;
+        if (width != appState->width || height != appState->height) {
+            appState->width = width;
+            appState->height = height;
 
             ENGINE_DEBUG("Window resize: %i, %i", width, height);
 
             /** Handle minimization. */
             if (width == 0 || height == 0) {
                 ENGINE_INFO("Window minimized, saspending application.")
-                appState.isSuspended = true;
+                appState->isSuspended = true;
                 return true;
             } else {
-                if (appState.isSuspended) {
+                if (appState->isSuspended) {
                     ENGINE_INFO("Window restored, resuming application.")
-                    appState.isSuspended = false;
+                    appState->isSuspended = false;
                 }
-                appState.gameInstance->onResize(appState.gameInstance, width, height);
+                appState->gameInstance->onResize(appState->gameInstance, width, height);
                 rendererOnResized(width, height);
             }
         }

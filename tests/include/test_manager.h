@@ -9,7 +9,7 @@ typedef u8 (*PFN_test)();
 
 void testManagerInit();
 
-void testManagerRegisterTest(PFN_test pfn_test, char* desc);
+void testManagerRegisterTest(u8 (*PFN_test)(), char* desc);
 
 void testManagerRunTests();
 

@@ -29,6 +29,8 @@ set(INCLUDE_FILES
     src/engine_memory/engine_memory.h
     src/engine_memory/engine_string.h
 
+    src/engine_memory/linear_allocator.h
+
     src/engine_math/engine_math.h
     src/engine_math/math_types.h
 
@@ -62,6 +64,8 @@ set(SOURCE_FILES
 
     src/engine_memory/engine_memory.c
     src/engine_memory/engine_string.c
+
+    src/engine_memory/linear_allocator.c
 
     src/engine_math/engine_math.c
 

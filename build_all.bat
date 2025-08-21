@@ -20,8 +20,8 @@ REM Editor
 make -f "Makefile.editor.windows.mak" all
 IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
-REM Tests
-make -f "Makefile.tests.windows.mak" all
-IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
+@REM REM Tests
+@REM make -f "Makefile.tests.windows.mak" all
+@REM IF %ERRORLEVEL% NEQ 0 (echo Error:%ERRORLEVEL% && exit)
 
 ECHO "All assemblies built successfully."

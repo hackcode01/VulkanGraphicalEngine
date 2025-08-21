@@ -5,7 +5,7 @@ OBJ_DIR := obj
 ASSEMBLY := tests
 EXTENSION := .exe
 COMPILER_FLAGS := -g -MD -Werror=vla -Wno-missing-braces -fdeclspec
-INCLUDE_FLAGS := -Iengine\src -Itests\src
+INCLUDE_FLAGS := -Iengine\src -Itests\include -Itests\src
 LINKER_FLAGS := -g -lengine.lib -L$(OBJ_DIR)\engine -L$(BUILD_DIR)
 DEFINES := -D_DEBUG -DENGINE_IMPORT
 
@@ -13,7 +13,7 @@ DEFINES := -D_DEBUG -DENGINE_IMPORT
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 SRC_FILES := $(call rwildcard,$(ASSEMBLY)/,*.c) # Get all .c files
-DIRECTORIES := \$(ASSEMBLY)\src $(subst $(DIR),,$(shell dir $(ASSEMBLY)\src /S /AD /B | findstr /i src)) # Get all directories under src.
+DIRECTORIES := \$(ASSEMBLY)\src \$(ASSEMBLY)\include $(subst $(DIR),,$(shell dir $(ASSEMBLY)\src /S /AD /B | findstr /i src)) # Get all directories under src.
 OBJ_FILES := $(SRC_FILES:%=$(OBJ_DIR)/%.o) # Get all compiled .c.o objects for tests
 
 all: scaffold compile link
