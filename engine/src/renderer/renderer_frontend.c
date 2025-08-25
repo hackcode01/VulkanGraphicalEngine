@@ -4,46 +4,60 @@
 #include "../core/logger.h"
 #include "../engine_memory/engine_memory.h"
 
-struct PlatformState;
+typedef struct RendererSystemState {
+    RendererBackend backend;
+} RendererSystemState;
 
-/** Backend render context. */
-static RendererBackend* backend = 0;
+static RendererSystemState *statePtr;
 
-b8 rendererInitialize(const char* applicationName,
-    struct PlatformState* platformState) {
-    backend = engineAllocate(sizeof(RendererBackend), MEMORY_TAG_RENDERER);
+b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *applicationName) {
+    *memoryRequirement = sizeof(RendererSystemState);
+    if (state == 0) {
+        return true;
+    }
 
-    /** Make this configurable. */
-    rendererBackendCreate(RENDERER_BACKEND_TYPE_VULKAN, platformState, backend);
-    backend->frameNumber = 0;
+    statePtr = state;
 
-    if (!backend->initialize(backend, applicationName, platformState)) {
-        ENGINE_FATAL("Renderer backend failed to initialize. Shutting down.")
+    rendererBackendCreate(RENDERER_BACKEND_TYPE_VULKAN, &statePtr->backend);
+    statePtr->backend.frameNumber = 0;
+
+    if (!statePtr->backend.initialize(&statePtr->backend, applicationName)) {
+        ENGINE_FATAL("Renderer backend failed to initialize. Shutting down.");
         return false;
     }
 
     return true;
 }
 
-void rendererShutdown() {
-    backend->shutdown(backend);
-    engineFree(backend, sizeof(RendererBackend), MEMORY_TAG_RENDERER);
+void rendererSystemShutdown(void *state) {
+    if (statePtr) {
+        statePtr->backend.shutdown(&statePtr->backend);
+    }
+    statePtr = 0;
 }
 
 b8 rendererBeginFrame(f32 deltaTime) {
-    return backend->beginFrame(backend, deltaTime);
+    if (!statePtr) {
+        return false;
+    }
+
+    return statePtr->backend.beginFrame(&statePtr->backend, deltaTime);
 }
 
 b8 rendererEndFrame(f32 deltaTime) {
-    b8 result = backend->endFrame(backend, deltaTime);
-    backend->frameNumber++;
+    if (!statePtr) {
+        return false;
+    }
+
+    b8 result = statePtr->backend.endFrame(&statePtr->backend, deltaTime);
+    statePtr->backend.frameNumber++;
 
     return result;
 }
 
 void rendererOnResized(u16 width, u16 height) {
-    if (backend) {
-        backend->resized(backend, width, height);
+    if (statePtr) {
+        statePtr->backend.resized(&statePtr->backend, width, height);
     } else {
         ENGINE_WARNING("Renderer backend does not exist to accept resize: %i %i",
             width, height)

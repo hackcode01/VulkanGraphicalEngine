@@ -19,18 +19,31 @@ typedef struct {
     Game* gameInstance;
     b8 isRunning;
     b8 isSuspended;
-    PlatformState platform;
+
     i16 width;
     i16 height;
     Clock clock;
     f64 lastTime;
     LinearAllocator systemsAllocator;
 
+    u64 eventSystemMemoryRequirement;
+    void *eventSystemState;
+
     u64 memorySystemMemoryRequirement;
     void* memorySystemState;
 
     u64 loggingSystemMemoryRequirement;
     void* loggingSystemState;
+
+    u64 inputSystemMemoryRequirement;
+    void *inputSystemState;
+
+    u64 platformSystemMemoryRequirement;
+    void *platformSystemState;
+
+    u64 rendererSystemMemoryRequirement;
+    void *rendererSystemState;
+
 } ApplicationState;
 
 static ApplicationState* appState;
@@ -58,11 +71,27 @@ b8 applicationCreate(Game* gameInstance) {
 
     /** Initialize subsystems. */
 
+    /** Events. */
+    eventSystemInitialize(&appState->eventSystemMemoryRequirement, 0);
+    appState->eventSystemState = linearAllocatorAllocate(
+        &appState->systemsAllocator,
+        appState->eventSystemMemoryRequirement
+    );
+    eventSystemInitialize(
+        &appState->eventSystemMemoryRequirement,
+        appState->eventSystemState
+    );
+
     /** Memory. */
-    initializeMemory(&appState->memorySystemMemoryRequirement, 0);
-    appState->memorySystemState = linearAllocatorAllocate(&appState->systemsAllocator,
-        appState->memorySystemMemoryRequirement);
-    initializeMemory(&appState->memorySystemMemoryRequirement, appState->memorySystemState);
+    memorySystemInitialize(&appState->memorySystemMemoryRequirement, 0);
+    appState->memorySystemState = linearAllocatorAllocate(
+        &appState->systemsAllocator,
+        appState->memorySystemMemoryRequirement
+    );
+    memorySystemInitialize(
+        &appState->memorySystemMemoryRequirement,
+        appState->memorySystemState
+    );
 
     /** Logging. */
     initializeLogging(&appState->loggingSystemMemoryRequirement, 0);
@@ -74,31 +103,46 @@ b8 applicationCreate(Game* gameInstance) {
         return false;
     }
 
-    inputInitialize();
+    /** Input. */
+    inputSystemInitialize(&appState->inputSystemMemoryRequirement, 0);
+    appState->inputSystemState = linearAllocatorAllocate(
+        &appState->systemsAllocator,
+        appState->inputSystemMemoryRequirement
+    );
+    inputSystemInitialize(
+        &appState->inputSystemMemoryRequirement,
+        appState->inputSystemState
+    );
 
-    if (!eventInitialize()) {
-        ENGINE_ERROR("Event system failed initialization. Application cannot continue.")
-        return false;
-    }
-
+    /** Register for engine-level events. */
     eventRegister(EVENT_CODE_APPLICATION_QUIT, 0, applicationOnEvent);
     eventRegister(EVENT_CODE_KEY_PRESSED, 0, applicationOnKey);
     eventRegister(EVENT_CODE_KEY_RELEASED, 0, applicationOnKey);
     eventRegister(EVENT_CODE_RESIZED, 0, applicationOnResize);
 
-    if (!platformStartup(
-        &appState->platform,
-        gameInstance->appConfig.name,
-        gameInstance->appConfig.startPositionX,
-        gameInstance->appConfig.startPositionY,
-        gameInstance->appConfig.startWidth,
-        gameInstance->appConfig.startHeight)) {
+    /** Platform. */
+    platformSystemStartup(&appState->platformSystemMemoryRequirement, 0, 0, 0, 0, 0, 0);
+    appState->platformSystemState = linearAllocatorAllocate(
+        &appState->systemsAllocator,
+        appState->platformSystemMemoryRequirement
+    );
+
+    if (!platformSystemStartup(&appState->platformSystemMemoryRequirement,
+        appState->platformSystemState, gameInstance->appConfig.name,
+        gameInstance->appConfig.startPositionX, gameInstance->appConfig.startPositionY,
+        gameInstance->appConfig.startWidth, gameInstance->appConfig.startHeight)) {
         return false;
     }
 
-    /** Renderer startup */
-    if (!rendererInitialize(gameInstance->appConfig.name, &appState->platform)) {
-        ENGINE_FATAL("Failed to initialize renderer. Aborting application.")
+    /** Renderer system. */
+    rendererSystemInitialize(&appState->rendererSystemMemoryRequirement, 0, 0);
+    appState->rendererSystemState = linearAllocatorAllocate(&appState->systemsAllocator,
+        appState->rendererSystemMemoryRequirement);
+
+    if (!rendererSystemInitialize(&appState->rendererSystemMemoryRequirement,
+        appState->rendererSystemState, gameInstance->appConfig.name)) {
+        ENGINE_FATAL("Failed to initialize renderer. Aborting application.");
+
         return false;
     }
 
@@ -108,6 +152,7 @@ b8 applicationCreate(Game* gameInstance) {
         return false;
     }
 
+    /** Call resize once to ensure the proper size has been set. */
     appState->gameInstance->onResize(appState->gameInstance, appState->width, appState->height);
 
     return true;
@@ -124,7 +169,7 @@ b8 applicationRun() {
     ENGINE_INFO(engineGetMemoryUsageStr());
 
     while (appState->isRunning) {
-        if (!platformPumpMessages(&appState->platform)) {
+        if (!platformPumpMessages()) {
             appState->isRunning = false;
         }
 
@@ -185,14 +230,13 @@ b8 applicationRun() {
     eventUnregister(EVENT_CODE_APPLICATION_QUIT, 0, applicationOnEvent);
     eventUnregister(EVENT_CODE_KEY_PRESSED, 0, applicationOnKey);
     eventUnregister(EVENT_CODE_KEY_RELEASED, 0, applicationOnKey);
-    eventShutdown();
-    inputShutdown();
 
-    rendererShutdown();
+    inputSystemShutdown(appState->inputSystemState);
+    rendererSystemShutdown(appState->rendererSystemState);
+    platformSystemShutdown(appState->platformSystemState);
 
-    platformShutdown(&appState->platform);
-
-    shutdownMemory();
+    memorySystemShutdown(appState->memorySystemState);
+    eventSystemShutdown(appState->eventSystemState);
 
     return true;
 }

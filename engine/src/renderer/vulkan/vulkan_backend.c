@@ -38,8 +38,7 @@ void regenerateFramebuffers(RendererBackend* backend, VulkanSwapchain* swapchain
     VulkanRenderPass* renderPass);
 b8 recreateSwapchain(RendererBackend* backend);
 
-b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applicationName,
-    struct PlatformState* platformState) {
+b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applicationName) {
     /** Function pointers. */
     context.findMemoryIndex = findMemoryIndex;
 
@@ -157,7 +156,7 @@ b8 vulkanRendererBackendInitialize(RendererBackend* backend, const char* applica
 
     /** Surface in Engine. */
     ENGINE_DEBUG("Creating Vulkan surface...")
-    if (!platformCreateVulkanSurface(platformState, &context)) {
+    if (!platformCreateVulkanSurface(&context)) {
         ENGINE_ERROR("Failed to create platform surface!")
         return false;
     }

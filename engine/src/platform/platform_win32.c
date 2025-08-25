@@ -18,39 +18,45 @@
 #include <vulkan/vulkan_win32.h>
 #include "../renderer/vulkan/vulkan_types.inl"
 
-typedef struct {
+typedef struct PlatformState {
     HINSTANCE hInstance;
     HWND hwnd;
     VkSurfaceKHR surface;
-} InternalState;
 
-/* Variables for Clock. */
-static f64 clockFrequency;
-static LARGE_INTEGER startTime;
+    /* Variables for Clock. */
+    f64 clockFrequency;
+    LARGE_INTEGER startTime;
+} PlatformState;
+
+static PlatformState *statePtr;
 
 LRESULT CALLBACK win32ProcessMessage(HWND hwnd, u32 message, WPARAM wParam, LPARAM lParam);
 
-b8 platformStartup(
-    PlatformState *platformState,
+b8 platformSystemStartup(
+    u64 *memoryRequirement,
+    void *state,
     const char* applicationName,
     i32 x,
     i32 y,
     i32 width,
     i32 height) {
-    platformState->internalState = malloc(sizeof(InternalState));
-    InternalState* state = (InternalState *)platformState->internalState;
 
-    state->hInstance = GetModuleHandleA(0);
+    *memoryRequirement = sizeof(PlatformState);
+    if (state == 0) {
+        return true;
+    }
+    statePtr = state;
+    statePtr->hInstance = GetModuleHandleA(0);
 
     /* Setup and register window class. */
-    HICON icon = LoadIcon(state->hInstance, IDI_APPLICATION);
+    HICON icon = LoadIcon(statePtr->hInstance, IDI_APPLICATION);
     WNDCLASSA wndClassA;
     memset(&wndClassA, 0, sizeof(wndClassA));
     wndClassA.style = CS_DBLCLKS;
     wndClassA.lpfnWndProc = win32ProcessMessage;
     wndClassA.cbClsExtra = 0;
     wndClassA.cbWndExtra = 0;
-    wndClassA.hInstance = state->hInstance;
+    wndClassA.hInstance = statePtr->hInstance;
     wndClassA.hIcon = icon;
     wndClassA.hCursor = LoadCursor(NULL, IDC_ARROW);
     wndClassA.hbrBackground = NULL;
@@ -95,7 +101,7 @@ b8 platformStartup(
     HWND handle = CreateWindowExA(
         windowExStyle, "EngineWindowClass", applicationName,
         windowStyle, windowX, windowY, windowWidth, windowHeight,
-        0, 0, state->hInstance, 0);
+        0, 0, statePtr->hInstance, 0);
 
     if (handle == 0) {
         MessageBoxA(NULL, "Window creation failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
@@ -103,7 +109,7 @@ b8 platformStartup(
 
         return false;
     } else {
-        state->hwnd = handle;
+        statePtr->hwnd = handle;
     }
 
     /* Show the window. */
@@ -114,34 +120,33 @@ b8 platformStartup(
      * If initially minimized, use SW_MINIMIZE : SW_SHOWMINNOACTIVE;
      * If initially maximized, use SW_SHOWMAXIMIZED : SW_MAXIMIZE
      */
-    ShowWindow(state->hwnd, showWindowCommandFlags);
+    ShowWindow(statePtr->hwnd, showWindowCommandFlags);
 
     /* Clock setup. */
     LARGE_INTEGER frequency;
     QueryPerformanceFrequency(&frequency);
 
-    clockFrequency = 1.0 / (f64)frequency.QuadPart;
-    QueryPerformanceCounter(&startTime);
+    statePtr->clockFrequency = 1.0 / (f64)frequency.QuadPart;
+    QueryPerformanceCounter(&statePtr->startTime);
 
     return true;
 }
 
-void platformShutdown(PlatformState* platformState) {
-    /* Simply cold-cast to the known type. */
-    InternalState *state = (InternalState *)platformState->internalState;
-
-    if (state->hwnd) {
-        DestroyWindow(state->hwnd);
-        state->hwnd = 0;
+void platformSystemShutdown(void *platformState) {
+    if (statePtr && statePtr->hwnd) {
+        DestroyWindow(statePtr->hwnd);
+        statePtr->hwnd = 0;
     }
 }
 
-b8 platformPumpMessages(PlatformState* platformState) {
-    MSG message;
+b8 platformPumpMessages() {
+    if (statePtr) {
+        MSG message;
 
-    while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
-        TranslateMessage(&message);
-        DispatchMessageA(&message);
+        while (PeekMessageA(&message, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&message);
+            DispatchMessageA(&message);
+        }
     }
 
     return true;
@@ -192,9 +197,14 @@ void platformConsoleWriteError(const char* message, u8 color) {
 }
 
 f64 platformGetAbsoluteTime() {
-    LARGE_INTEGER nowTime;
-    QueryPerformanceCounter(&nowTime);
-    return (f64)nowTime.QuadPart * clockFrequency;
+    if (statePtr) {
+        LARGE_INTEGER nowTime;
+        QueryPerformanceCounter(&nowTime);
+
+        return (f64)nowTime.QuadPart * statePtr->clockFrequency;
+    }
+
+    return 0;
 }
 
 void platformSleep(u64 ms) {
@@ -206,23 +216,24 @@ void platformGetRequiredExtensionNames(const char*** namesDynamicArray) {
 }
 
 /** Surface creation for vulkan. */
-b8 platformCreateVulkanSurface(PlatformState* platformState, VulkanContext* context) {
-    /** Simply cold-cast to the known type. */
-    InternalState* state = (InternalState*)platformState->internalState;
+b8 platformCreateVulkanSurface(VulkanContext *context) {
+    if (!statePtr) {
+        return false;
+    }
 
     VkWin32SurfaceCreateInfoKHR createInfo = {VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR};
-    createInfo.hinstance = state->hInstance;
-    createInfo.hwnd = state->hwnd;
+    createInfo.hinstance = statePtr->hInstance;
+    createInfo.hwnd = statePtr->hwnd;
 
     VkResult result = vkCreateWin32SurfaceKHR(context->instance, &createInfo,
-        context->allocator, &state->surface);
+        context->allocator, &statePtr->surface);
 
     if (result != VK_SUCCESS) {
         ENGINE_FATAL("Vulkan surface creation failed!")
         return false;
     }
 
-    context->surface = state->surface;
+    context->surface = statePtr->surface;
     return true;
 }
 

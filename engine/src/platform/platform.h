@@ -3,22 +3,19 @@
 
 #include "../defines.h"
 
-typedef struct PlatformState {
-    void* internalState;
-} PlatformState;
-
-b8 platformStartup(
-    PlatformState* platformState,
-    const char* applicationName,
+b8 platformSystemStartup(
+    u64 *memoryRequirement,
+    void *state,
+    const char *applicationName,
     i32 x,
     i32 y,
     i32 width,
     i32 height
 );
 
-void platformShutdown(PlatformState* platformState);
+void platformSystemShutdown(void *state);
 
-b8 platformPumpMessages(PlatformState* platformState);
+b8 platformPumpMessages();
 
 void* platformAllocate(u64 size, b8 aligned);
 void platformFree(void* block, b8 aligned);

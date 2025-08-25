@@ -1,10 +1,6 @@
 #include "./vulkan/vulkan_backend.h"
 
-b8 rendererBackendCreate(RendererBackendType type,
-    struct PlatformState* platformState,
-    RendererBackend* outRendererBackend) {
-    outRendererBackend->platformState = platformState;
-
+b8 rendererBackendCreate(RendererBackendType type, RendererBackend *outRendererBackend) {
     if (type == RENDERER_BACKEND_TYPE_VULKAN) {
         outRendererBackend->initialize = vulkanRendererBackendInitialize;
         outRendererBackend->shutdown = vulkanRendererBackendShutdown;

@@ -21,46 +21,46 @@ typedef struct EventSystemState {
 } EventSystemState;
 
 /**
- * Event system internal state.
+ * Event system internal statePtr->
  */
-static b8 isInitialized = false;
-static EventSystemState state;
+static EventSystemState *statePtr;
 
-b8 eventInitialize() {
-    if (isInitialized == true) {
-        return false;
+void eventSystemInitialize(u64 *memoryRequirement, void *state) {
+    *memoryRequirement = sizeof(EventSystemState);
+    if (state == 0) {
+        return;
     }
 
-    isInitialized = false;
-    engineZeroMemory(&state, sizeof(state));
-
-    isInitialized = true;
-
-    return true;
+    engineZeroMemory(state, sizeof(state));
+    statePtr = state;
 }
 
-void eventShutdown() {
-    /* Free the events arrays. And objects pointed to should be destroyed on their own. */
-    for (u16 i = 0; i < MAX_MESSAGES_CODES; ++i) {
-        if (state.registered[i].events != 0) {
-            dynamicArrayDestroy(state.registered[i].events);
-            state.registered[i].events = 0;
+void eventSystemShutdown(void *state) {
+    if (statePtr) {
+        /* Free the events arrays. And objects pointed to should be destroyed on their own. */
+        for (u16 i = 0; i < MAX_MESSAGES_CODES; ++i) {
+            if (statePtr->registered[i].events != 0) {
+                dynamicArrayDestroy(statePtr->registered[i].events);
+                statePtr->registered[i].events = 0;
+            }
         }
     }
+
+    statePtr = 0;
 }
 
 b8 eventRegister(u16 code, void* listener, PFN_on_event on_event) {
-    if (isInitialized == false) {
+    if (!statePtr) {
         return false;
     }
 
-    if (state.registered[code].events == 0) {
-        state.registered[code].events = dynamicArrayCreate(RegisteredEvent);
+    if (statePtr->registered[code].events == 0) {
+        statePtr->registered[code].events = dynamicArrayCreate(RegisteredEvent);
     }
 
-    u64 registeredCount = dynamicArrayLength(state.registered[code].events);
+    u64 registeredCount = dynamicArrayLength(statePtr->registered[code].events);
     for (u64 i = 0; i < registeredCount; ++i) {
-        if (state.registered[code].events[i].listener == listener) {
+        if (statePtr->registered[code].events[i].listener == listener) {
             return false;
         }
     }
@@ -69,29 +69,30 @@ b8 eventRegister(u16 code, void* listener, PFN_on_event on_event) {
     RegisteredEvent event;
     event.listener = listener;
     event.callback = on_event;
-    dynamicArrayPush(state.registered[code].events, event);
+    dynamicArrayPush(statePtr->registered[code].events, event);
 
     return true;
 }
 
 b8 eventUnregister(u16 code, void* listener, PFN_on_event on_event) {
-    if (isInitialized == false) {
+    if (!statePtr) {
         return false;
     }
 
     /* On nothing is registered for the code, boot out. */
-    if (state.registered[code].events == 0) {
+    if (statePtr->registered[code].events == 0) {
         return false;
     }
 
-    u64 registeredCount = dynamicArrayLength(state.registered[code].events);
+    u64 registeredCount = dynamicArrayLength(statePtr->registered[code].events);
     for (u64 i = 0; i < registeredCount; ++i) {
-        RegisteredEvent event = state.registered[code].events[i];
+        RegisteredEvent event = statePtr->registered[code].events[i];
 
         if (event.listener == listener && event.callback == on_event) {
             /* Found one, remove it. */
             RegisteredEvent popped_event;
-            dynamicArrayPopAt(state.registered[code].events, i, &popped_event);
+            dynamicArrayPopAt(statePtr->registered[code].events, i, &popped_event);
+
             return true;
         }
     }
@@ -101,18 +102,18 @@ b8 eventUnregister(u16 code, void* listener, PFN_on_event on_event) {
 }
 
 b8 eventFire(u16 code, void* sender, EventContext context) {
-    if (isInitialized == false) {
+    if (!statePtr) {
         return false;
     }
 
     /* If nothing is registered fot the code, boot out. */
-    if (state.registered[code].events == 0) {
+    if (statePtr->registered[code].events == 0) {
         return false;
     }
 
-    u64 registeredCount = dynamicArrayLength(state.registered[code].events);
+    u64 registeredCount = dynamicArrayLength(statePtr->registered[code].events);
     for (u64 i = 0; i < registeredCount; ++i) {
-        RegisteredEvent event = state.registered[code].events[i];
+        RegisteredEvent event = statePtr->registered[code].events[i];
 
         if (event.callback(code, sender, event.listener, context)) {
             /* Message has been handled, do not send to other listeners. */

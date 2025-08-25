@@ -1,5 +1,5 @@
-#ifndef __DEFINES_H__
-#define __DEFINES_H__
+#ifndef __ENGINE_DEFINES_H__
+#define __ENGINE_DEFINES_H__
 
 #define ENGINE_UINT64_MAX 0xffffffffffffffffULL
 
@@ -123,4 +123,4 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected u8 to be 1 byte.");
 #define ENGINE_NOINLINE
 #endif
 
-#endif /* __DEFINES_H__ */
+#endif /* __ENGINE_DEFINES_H__ */

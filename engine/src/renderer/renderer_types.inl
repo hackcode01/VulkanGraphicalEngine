@@ -10,11 +10,9 @@ typedef enum RendererBackendType {
 } RendererBackendType;
 
 typedef struct RendererBackend {
-    struct PlatformState* platformState;
     u64 frameNumber;
 
-    b8 (*initialize)(struct RendererBackend* backend, const char* applicationName,
-        struct PlatformState* platformState);
+    b8 (*initialize)(struct RendererBackend *backend, const char *applicationName);
 
     void (*shutdown)(struct RendererBackend* backend);
 

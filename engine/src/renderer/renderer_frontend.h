@@ -3,14 +3,11 @@
 
 #include "./renderer_types.inl"
 
-struct StaticMeshData;
-struct PlatformState;
-
-b8 rendererInitialize(const char* applicationName, struct PlatformState* platformState);
-void rendererShutdown();
+b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *applicationName);
+void rendererSystemShutdown(void *state);
 
 void rendererOnResized(u16 width, u16 height);
 
-b8 rendererDrawFrame(RenderPacket* packet);
+b8 rendererDrawFrame(RenderPacket *packet);
 
 #endif

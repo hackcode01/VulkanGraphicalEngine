@@ -1,12 +1,9 @@
-#ifndef __VULKAN_BACKEND_H__
-#define __VULKAN_BACKEND_H__
+#ifndef __ENGINE_VULKAN_BACKEND_H__
+#define __ENGINE_VULKAN_BACKEND_H__
 
 #include "../renderer_backend.h"
 
-b8 vulkanRendererBackendInitialize(RendererBackend* backend,
-    const char* applicationName,
-    struct PlatformState* platformState
-);
+b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applicationName);
 
 void vulkanRendererBackendShutdown(RendererBackend* backend);
 

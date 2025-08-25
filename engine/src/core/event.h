@@ -28,8 +28,8 @@ typedef struct EventContext {
 typedef b8 (*PFN_on_event)(u16 code, void* sender, void* listenerInstance,
     EventContext data);
 
-b8 eventInitialize();
-void eventShutdown();
+void eventSystemInitialize();
+void eventSystemShutdown();
 
 /**
  * Register to listen for when events are sent with the provided code. Events with duplicate
