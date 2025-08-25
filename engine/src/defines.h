@@ -21,7 +21,12 @@ typedef double f64;
 
 /* Boolean types. */
 typedef int b32;
+#if defined(_gcc__) && !defined(__clang__)
 typedef _Bool b8;
+#else
+#include <stdbool.h>
+typedef bool b8;
+#endif
 
 /* Properly define static assertions. */
 #if defined(__clang__) || defined(__gcc__)

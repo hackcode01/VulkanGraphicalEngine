@@ -19,6 +19,9 @@
 
 #include "../../platform/platform.h"
 
+/** Shaders. */
+#include "shaders/vulkan_object_shader.h"
+
 /** Static Vulkan context. */
 static VulkanContext context;
 static u32 cachedFramebufferWidth = 0;
@@ -223,6 +226,12 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
     context.imagesInFlight = dynamicArrayReserve(VulkanFence, context.swapchain.imageCount);
     for (u32 i = 0; i < context.swapchain.imageCount; ++i) {
         context.imagesInFlight[i] = 0;
+    }
+
+    /** Create builtin shaders. */
+    if (!vulkanObjectShaderCreate(&context, &context.objectShader)) {
+        ENGINE_ERROR("Error loading builtin basicLightning shader.")
+        return false;
     }
 
     ENGINE_INFO("Vulkan renderer initialized successfully.")

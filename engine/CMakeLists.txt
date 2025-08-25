@@ -35,6 +35,7 @@ set(INCLUDE_FILES
     src/engine_math/math_types.h
 
     src/platform/platform.h
+    src/platform/filesystem.h
 
     src/renderer/renderer_backend.h
     src/renderer/renderer_frontend.h
@@ -51,6 +52,9 @@ set(INCLUDE_FILES
     src/renderer/vulkan/vulkan_swapchain.h
     src/renderer/vulkan/vulkan_types.inl
     src/renderer/vulkan/vulkan_utils.h
+    src/renderer/vulkan/vulkan_shader_utils.h
+
+    src/renderer/vulkan/shaders/vulkan_object_shader.h
 )
 
 set(SOURCE_FILES
@@ -69,8 +73,8 @@ set(SOURCE_FILES
 
     src/engine_math/engine_math.c
 
-    src/platform/platform_linux.c
     src/platform/platform_win32.c
+    src/platform/filesystem.c
 
     src/renderer/renderer_backend.c
     src/renderer/renderer_frontend.c
@@ -84,6 +88,9 @@ set(SOURCE_FILES
     src/renderer/vulkan/vulkan_render_pass.c
     src/renderer/vulkan/vulkan_swapchain.c
     src/renderer/vulkan/vulkan_utils.c
+    src/renderer/vulkan/vulkan_shader_utils.c
+
+    src/renderer/vulkan/shaders/vulkan_object_shader.c
 )
 
 add_library(${PROJECT_NAME} STATIC ${INCLUDE_FILES} ${SOURCE_FILES})

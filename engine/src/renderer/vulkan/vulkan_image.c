@@ -16,8 +16,8 @@ void vulkanImageCreate(
     VkMemoryPropertyFlags memoryFlags,
     b32 createView,
     VkImageAspectFlags viewAspectFlags,
-    VulkanImage* outImage
-) {
+    VulkanImage* outImage) {
+
     /** Copy params */
     outImage->width = width;
     outImage->height = height;
