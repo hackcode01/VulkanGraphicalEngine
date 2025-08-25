@@ -50,29 +50,29 @@ void inputUpdate(f64 deltaTime) {
         sizeof(MouseState));
 }
 
-void inputProcessKey(Keys key, b8 pressed) {
-    if (key == KEY_LALT) {
-        ENGINE_INFO("Left alt pressed.")
-    } else if (key == KEY_RALT) {
-        ENGINE_INFO("Right alt pressed.")
-    }
-
-    if (key == KEY_LCONTROL) {
-        ENGINE_INFO("Left ctrl pressed.")
-    } else if (key == KEY_RCONTROL) {
-        ENGINE_INFO("Right ctrl pressed.")
-    }
-
-    if (key == KEY_LSHIFT) {
-        ENGINE_INFO("Left shift pressed.")
-    } else if (key == KEY_RSHIFT) {
-        ENGINE_INFO("Right shift pressed.")
-    }
-
+void inputProcessKey(Keys key, b8 pressed) {    
     /** Only handle this if the state actually changed. */
-    if (statePtr->keyboardCurrent.keys[key] != pressed) {
+    if (statePtr && statePtr->keyboardCurrent.keys[key] != pressed) {
         /* Update internal state. */
         statePtr->keyboardCurrent.keys[key] = pressed;
+
+        if (key == KEY_LALT) {
+            ENGINE_INFO("Left alt %s.", pressed ? "pressed" : "released")
+        } else if (key == KEY_RALT) {
+            ENGINE_INFO("Right alt %s.", pressed ? "pressed" : "released")
+        }
+
+        if (key == KEY_LCONTROL) {
+            ENGINE_INFO("Left ctrl %s.", pressed ? "pressed" : "released")
+        } else if (key == KEY_RCONTROL) {
+            ENGINE_INFO("Right ctrl %s.", pressed ? "pressed" : "released")
+        }
+
+        if (key == KEY_LSHIFT) {
+            ENGINE_INFO("Left shift %s.", pressed ? "pressed" : "released")
+        } else if (key == KEY_RSHIFT) {
+            ENGINE_INFO("Right shift %s.", pressed ? "pressed" : "released")
+        }
 
         /* Fire off an event for immediate processing. */
         EventContext context;
