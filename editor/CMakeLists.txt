@@ -18,6 +18,16 @@ add_executable(${PROJECT_NAME} ${INCLUDE_FILES} ${SOURCE_FILES} src/main.c)
 
 target_link_libraries(${PROJECT_NAME} Engine spdlog)
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    "${CMAKE_SOURCE_DIR}/build/bin/assets/shaders"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/bin/assets/shaders"
+    "${CMAKE_SOURCE_DIR}/build/bin/assets/shaders/"
+    COMMENT "Copying shaders in binary dir"
+    VERBATIM
+)
+
 set_target_properties(${PROJECT_NAME}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_BINARY_DIR}/bin/
