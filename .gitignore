@@ -75,3 +75,4 @@ CMakeLists.txt.user*
 obj/
 build/
 bin/
+.vscode/

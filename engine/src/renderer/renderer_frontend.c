@@ -36,7 +36,7 @@ b8 rendererBeginFrame(f32 deltaTime) {
 
 b8 rendererEndFrame(f32 deltaTime) {
     b8 result = backend->endFrame(backend, deltaTime);
-    ++(backend->frameNumber);
+    backend->frameNumber++;
 
     return result;
 }

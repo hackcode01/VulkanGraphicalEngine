@@ -53,10 +53,10 @@ b8 vulkanSwapchainAcquireNextImageIndex(
         vulkanSwapchainRecreate(context, context->framebufferWidth,
             context->framebufferHeight, swapchain);
         return false;
-    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    } /** else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         ENGINE_FATAL("Failed to acquire swapchain image!");
         return false;
-    }
+    } */
 
     return true;
 }

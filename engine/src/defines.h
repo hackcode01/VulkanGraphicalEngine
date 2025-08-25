@@ -1,6 +1,8 @@
 #ifndef __DEFINES_H__
 #define __DEFINES_H__
 
+#define ENGINE_UINT64_MAX 0xffffffffffffffffULL
+
 /* Unsigned int types. */
 typedef unsigned char u8;
 typedef unsigned short u16;

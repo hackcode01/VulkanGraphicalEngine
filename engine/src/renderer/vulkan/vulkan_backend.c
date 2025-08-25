@@ -377,7 +377,7 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
     if (!vulkanFenceWait(
         &context,
         &context.inFlightFences[context.currentFrame],
-        UINT64_MAX)) {
+        ENGINE_UINT64_MAX)) {
     
         ENGINE_WARNING("In-flight fence wait failure!")
         return false;
@@ -392,7 +392,7 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
     if (!vulkanSwapchainAcquireNextImageIndex(
         &context,
         &context.swapchain,
-        UINT64_MAX,
+        ENGINE_UINT64_MAX,
         context.imageAvailableSemaphores[context.currentFrame],
         0,
         &context.imageIndex)) {
@@ -453,7 +453,7 @@ b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
         vulkanFenceWait(
             &context,
             context.imagesInFlight[context.imageIndex],
-            UINT64_MAX);
+            ENGINE_UINT64_MAX);
     }
 
     /** Mark the image fence as in-use by this frame. */
