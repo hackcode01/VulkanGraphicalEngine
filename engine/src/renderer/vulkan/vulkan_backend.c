@@ -9,6 +9,7 @@
 #include "vulkan_framebuffer.h"
 #include "vulkan_fence.h"
 #include "vulkan_utils.h"
+#include "vulkan_buffer.h"
 
 #include "../../core/logger.h"
 #include "../../engine_memory/engine_string.h"
@@ -16,6 +17,8 @@
 #include "../../core/application.h"
 
 #include "../../containers/dynamic_array.h"
+
+#include "../../engine_math/math_types.h"
 
 #include "../../platform/platform.h"
 
@@ -35,6 +38,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(
 );
 
 i32 findMemoryIndex(u32 typeFilter, u32 propertyFlags);
+b8 createBuffers(VulkanContext *context);
 
 void createCommandBuffers(RendererBackend* backend);
 void regenerateFramebuffers(RendererBackend* backend, VulkanSwapchain* swapchain,
@@ -56,7 +60,7 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
 
     /** Setup Vulkan instance. */
     VkApplicationInfo appInfo = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
-    appInfo.apiVersion = VK_API_VERSION_1_4;
+    appInfo.apiVersion = VK_API_VERSION_1_3;
     appInfo.pApplicationName = applicationName;
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Vulkan Engine";
@@ -234,6 +238,8 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
         return false;
     }
 
+    createBuffers(&context);
+
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return true;
 }
@@ -242,6 +248,11 @@ void vulkanRendererBackendShutdown(RendererBackend* backend) {
     vkDeviceWaitIdle(context.device.logicalDevice);
 
     /** Destroy in the opposite order of creation. */
+
+    /** Destroy buffers. */
+    vulkanBufferDestroy(&context, &context.objectVertexBuffer);
+    vulkanBufferDestroy(&context, &context.objectIndexBuffer);
+
     vulkanObjectShaderDestroy(&context, &context.objectShader);
 
     /** Sync objects. */
@@ -692,6 +703,42 @@ b8 recreateSwapchain(RendererBackend* backend) {
 
     /** Clear the recreating flag. */
     context.recreatingSwapchain = false;
+
+    return true;
+}
+
+b8 createBuffers(VulkanContext *context) {
+    VkMemoryPropertyFlagBits memoryPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    const u64 vertexBufferSize = sizeof(vertex_3d) * 1024 * 1024;
+
+    if (!vulkanBufferCreate(
+        context,
+        vertexBufferSize,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        memoryPropertyFlags,
+        true,
+        &context->objectVertexBuffer)) {
+
+        ENGINE_ERROR("Error creating vertex buffer.")
+        return false;
+    }
+
+    context->geometryVertexOffset = 0;
+
+    const u64 indexBufferSize = sizeof(u32) * 1024 * 1024;
+
+    if (!vulkanBufferCreate(
+        context, indexBufferSize,
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT, memoryPropertyFlags, true,
+        &context->objectIndexBuffer)) {
+        ENGINE_ERROR("Error creating vertex buffer.")
+        return false;
+    }
+
+    context->geometryIndexOffset = 0;
 
     return true;
 }
