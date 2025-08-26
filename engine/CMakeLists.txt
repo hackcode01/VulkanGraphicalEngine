@@ -127,12 +127,6 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
 
 target_compile_features(${PROJECT_NAME} PUBLIC c_std_17)
 
-add_subdirectory(../external/glfw ${CMAKE_CURRENT_BINARY_DIR}/glfw)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
-
-add_subdirectory(../external/spdlog ${CMAKE_CURRENT_BINARY_DIR}/spdlog)
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Vulkan::Vulkan
 )

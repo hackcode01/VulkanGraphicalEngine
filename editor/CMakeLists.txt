@@ -16,7 +16,7 @@ set(SOURCE_FILES
 
 add_executable(${PROJECT_NAME} ${INCLUDE_FILES} ${SOURCE_FILES} src/main.c)
 
-target_link_libraries(${PROJECT_NAME} Engine spdlog)
+target_link_libraries(${PROJECT_NAME} Engine)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory

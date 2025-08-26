@@ -73,6 +73,11 @@ CMakeLists.txt.user*
 .uic/
 
 obj/
-build/
-bin/
+
+build*/
+
+bin*/
+bin_static*/
+
 .vscode/
+

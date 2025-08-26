@@ -245,7 +245,7 @@ void vulkanRendererBackendShutdown(RendererBackend* backend) {
     vulkanObjectShaderDestroy(&context, &context.objectShader);
 
     /** Sync objects. */
-     for (u8 i = 0; i < context.swapchain.maxFramesInFlight; ++i) {
+    for (u8 i = 0; i < context.swapchain.maxFramesInFlight; ++i) {
         if (context.imageAvailableSemaphores[i]) {
             vkDestroySemaphore(
                 context.device.logicalDevice,

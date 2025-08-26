@@ -1,1 +1,0 @@
-cd bin && editor.exe
