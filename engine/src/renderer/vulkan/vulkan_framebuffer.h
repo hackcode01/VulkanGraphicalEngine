@@ -5,7 +5,7 @@
 
 void vulkanFramebufferCreate(
     VulkanContext* context,
-    VulkanRenderPass* renderPass,
+    VulkanRenderpass* renderPass,
     u32 width, u32 height,
     u32 attachmentCount,
     VkImageView* attachments,

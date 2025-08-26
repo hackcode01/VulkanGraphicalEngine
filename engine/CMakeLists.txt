@@ -53,6 +53,7 @@ set(INCLUDE_FILES
     src/renderer/vulkan/vulkan_types.inl
     src/renderer/vulkan/vulkan_utils.h
     src/renderer/vulkan/vulkan_shader_utils.h
+    src/renderer/vulkan/vulkan_pipeline.h
 
     src/renderer/vulkan/shaders/vulkan_object_shader.h
 )
@@ -89,6 +90,7 @@ set(SOURCE_FILES
     src/renderer/vulkan/vulkan_swapchain.c
     src/renderer/vulkan/vulkan_utils.c
     src/renderer/vulkan/vulkan_shader_utils.c
+    src/renderer/vulkan/vulkan_pipeline.c
 
     src/renderer/vulkan/shaders/vulkan_object_shader.c
 )

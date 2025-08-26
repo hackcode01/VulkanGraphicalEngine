@@ -51,16 +51,16 @@ typedef struct VulkanImage {
     u32 height;
 } VulkanImage;
 
-typedef enum VulkanRenderPassState {
+typedef enum VulkanRenderpassState {
     READY,
     RECORDING,
     IN_RENDER_PASS,
     RECORDING_ENDED,
     SUBMITTED,
     NOT_ALLOCATED
-} VulkanRenderPassState;
+} VulkanRenderpassState;
 
-typedef struct VulkanRenderPass {
+typedef struct VulkanRenderpass {
     VkRenderPass handle;
     f32 coordinate_x;
     f32 coordinate_y;
@@ -75,14 +75,14 @@ typedef struct VulkanRenderPass {
     f32 depth;
     u32 stencil;
 
-    VulkanRenderPassState state;
-} VulkanRenderPass;
+    VulkanRenderpassState state;
+} VulkanRenderpass;
 
 typedef struct VulkanFramebuffer {
     VkFramebuffer handle;
     u32 attachmentCount;
     VkImageView* attachments;
-    VulkanRenderPass* renderPass;
+    VulkanRenderpass* renderPass;
 } VulkanFramebuffer;
 
 typedef struct VulkanSwapchain {
@@ -167,7 +167,7 @@ typedef struct VulkanContext {
     VulkanDevice device;
 
     VulkanSwapchain swapchain;
-    VulkanRenderPass mainRenderpass;
+    VulkanRenderpass mainRenderpass;
 
     /** Dynamic array. */
     VulkanCommandBuffer* graphicsCommandBuffers;

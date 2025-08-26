@@ -38,7 +38,7 @@ i32 findMemoryIndex(u32 typeFilter, u32 propertyFlags);
 
 void createCommandBuffers(RendererBackend* backend);
 void regenerateFramebuffers(RendererBackend* backend, VulkanSwapchain* swapchain,
-    VulkanRenderPass* renderPass);
+    VulkanRenderpass* renderPass);
 b8 recreateSwapchain(RendererBackend* backend);
 
 b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applicationName) {
@@ -242,6 +242,7 @@ void vulkanRendererBackendShutdown(RendererBackend* backend) {
     vkDeviceWaitIdle(context.device.logicalDevice);
 
     /** Destroy in the opposite order of creation. */
+    vulkanObjectShaderDestroy(&context, &context.objectShader);
 
     /** Sync objects. */
      for (u8 i = 0; i < context.swapchain.maxFramesInFlight; ++i) {
@@ -600,7 +601,7 @@ void createCommandBuffers(RendererBackend* backend) {
 }
 
 void regenerateFramebuffers(RendererBackend* backend, VulkanSwapchain* swapchain,
-    VulkanRenderPass* renderPass) {
+    VulkanRenderpass* renderPass) {
     for (u32 i = 0; i < swapchain->imageCount; ++i) {
         /** Make this dynamic based on the currently configured attachments */
         u32 attachmentCount = 2;

@@ -5,7 +5,7 @@
 
 void vulkanRenderPassCreate(
     VulkanContext* context,
-    VulkanRenderPass* outRenderpass,
+    VulkanRenderpass* outRenderpass,
     f32 coordinate_x,
     f32 coordinate_y,
     f32 width,
@@ -18,14 +18,14 @@ void vulkanRenderPassCreate(
     u32 stencil
 );
 
-void vulkanRenderPassDestroy(VulkanContext* context, VulkanRenderPass* renderpass);
+void vulkanRenderPassDestroy(VulkanContext* context, VulkanRenderpass* renderpass);
 
 void vulkanRenderPassBegin(
     VulkanCommandBuffer* commandBuffer,
-    VulkanRenderPass* renderPass,
+    VulkanRenderpass* renderPass,
     VkFramebuffer frameBuffer
 );
 
-void vulkanRenderPassEnd(VulkanCommandBuffer* commandBuffer, VulkanRenderPass* renderPass);
+void vulkanRenderPassEnd(VulkanCommandBuffer* commandBuffer, VulkanRenderpass* renderPass);
 
 #endif

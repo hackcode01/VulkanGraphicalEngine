@@ -4,7 +4,7 @@
 
 void vulkanRenderPassCreate(
     VulkanContext* context,
-    VulkanRenderPass* outRenderPass,
+    VulkanRenderpass* outRenderPass,
     f32 coordinate_x, f32 coordinate_y, f32 width, f32 height,
     f32 red, f32 green, f32 blue, f32 alpha,
     f32 depth, u32 stencil) {
@@ -109,7 +109,7 @@ void vulkanRenderPassCreate(
         &outRenderPass->handle))
 }
 
-void vulkanRenderPassDestroy(VulkanContext* context, VulkanRenderPass* renderpass) {
+void vulkanRenderPassDestroy(VulkanContext* context, VulkanRenderpass* renderpass) {
     if (renderpass && renderpass->handle) {
         vkDestroyRenderPass(context->device.logicalDevice,
             renderpass->handle, context->allocator);
@@ -119,7 +119,7 @@ void vulkanRenderPassDestroy(VulkanContext* context, VulkanRenderPass* renderpas
 
 void vulkanRenderPassBegin(
     VulkanCommandBuffer* commandBuffer,
-    VulkanRenderPass* renderpass,
+    VulkanRenderpass* renderpass,
     VkFramebuffer frameBuffer) {
 
     VkRenderPassBeginInfo beginInfo = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -147,7 +147,7 @@ void vulkanRenderPassBegin(
 }
 
 void vulkanRenderPassEnd(VulkanCommandBuffer* commandBuffer,
-    VulkanRenderPass* renderpass) {
+    VulkanRenderpass* renderpass) {
     vkCmdEndRenderPass(commandBuffer->handle);
     commandBuffer->state = COMMAND_BUFFER_STATE_RECORDING;
 }

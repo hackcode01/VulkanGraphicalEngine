@@ -1,16 +1,29 @@
 #include "logger.h"
 #include "asserts.h"
 #include "../platform/platform.h"
+#include "../platform/filesystem.h"
+#include "../engine_memory/engine_string.h"
+#include "../engine_memory/engine_memory.h"
 
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
 
 typedef struct LoggerSystemState {
-    b8 initialized;
+    FileHandle logFileHandle;
 } LoggerSystemState;
 
-static LoggerSystemState* s_statePtr;
+static LoggerSystemState* statePtr;
+
+void appendToLogFile(const char *message) {
+    if (statePtr && statePtr->logFileHandle.isValid) {
+        /** Since the message already contains a '\n', just write the bytes directly. */
+        u64 length = stringLength(message);
+        u64 written = 0;
+
+        if (!filesystemWrite(&statePtr->logFileHandle, length, message, &written)) {
+            platformConsoleWriteError("ERROR: writting to console.log.", LOG_LEVEL_ERROR);
+        }
+    }
+}
 
 b8 initializeLogging(u64* memoryRequirement, void* state) {
     *memoryRequirement = sizeof(LoggerSystemState);
@@ -18,8 +31,13 @@ b8 initializeLogging(u64* memoryRequirement, void* state) {
         return true;
     }
 
-    s_statePtr = state;
-    s_statePtr->initialized = true;
+    statePtr = state;
+
+    /** Create new/wipe existing log file, then open it. */
+    if (!filesystemOpen("console.log", FILE_MODE_WRITE, false, &statePtr->logFileHandle)) {
+        platformConsoleWriteError("ERROR: Unable to open console.log for writting.", LOG_LEVEL_ERROR);
+        return false;
+    }
 
     /** Create log file. */
     return true;
@@ -27,7 +45,7 @@ b8 initializeLogging(u64* memoryRequirement, void* state) {
 
 void shutdownLogging(void* state) {
     /** Cleanup logging/write queued entries. */
-    s_statePtr = 0;
+    statePtr = 0;
 }
 
 void logOutput(LogLevel level, const char* message, ...) {
@@ -41,22 +59,25 @@ void logOutput(LogLevel level, const char* message, ...) {
     };
     b8 isError = level < LOG_LEVEL_WARNING;
 
-    char outMessage[32000ull];
-    memset(outMessage, 0, sizeof(outMessage));
+    char outMessage[32000ULL];
+    engineZeroMemory(outMessage, sizeof(outMessage));
 
     va_list argPtr;
     va_start(argPtr, message);
-    vsnprintf(outMessage, 32000ull, message, argPtr);
+    stringFormatV(outMessage, message, argPtr);
     va_end(argPtr);
 
-    char outMessageResult[32000ull];
-    sprintf(outMessageResult, "%s%s\n", levelStrings[level], outMessage);
+    /** Prepend log level to message. */
+    stringFormat(outMessage, "%s%s\n", levelStrings[level], outMessage);
 
     if (isError) {
-        platformConsoleWriteError(outMessageResult, level);
+        platformConsoleWriteError(outMessage, level);
     } else {
-        platformConsoleWrite(outMessageResult, level);
+        platformConsoleWrite(outMessage, level);
     }
+
+    /** Queue a copy to be written to the log file. */
+    appendToLogFile(outMessage);
 }
 
 void reportAssertionFailure(const char* expression, const char* message,
