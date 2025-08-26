@@ -96,6 +96,29 @@ set(SOURCE_FILES
 add_library(${PROJECT_NAME} STATIC ${INCLUDE_FILES} ${SOURCE_FILES})
 target_compile_options(${PROJECT_NAME} PRIVATE -g -shared -Wall)
 
+file(GLOB_RECURSE GLSL_SOURCE_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.comp"
+)
+
+foreach(GLSL IN LISTS GLSL_SOURCE_FILES)
+    file(RELATIVE_PATH FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/shaders/" "${GLSL}")
+    set(SPIRV "${CMAKE_SOURCE_DIR}/build/CompiledShaders/${FILE_NAME}.spv")
+
+    add_custom_command(
+        OUTPUT ${SPIRV}
+        COMMAND Vulkan::glslc ${GLSL} -o ${SPIRV}
+        DEPENDS ${GLSL})
+
+    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach(GLSL)
+
+add_custom_target(
+    ShadersTarget ALL
+    DEPENDS ${SPIRV_BINARY_FILES}
+)
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
     ${INCLUDE_FILES} ${SOURCE_FILES}
 )

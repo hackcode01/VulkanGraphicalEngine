@@ -22,8 +22,8 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
     "${CMAKE_SOURCE_DIR}/build/bin/assets/shaders"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/bin/assets/shaders"
-    "${CMAKE_SOURCE_DIR}/build/bin/assets/shaders/"
+    "${CMAKE_SOURCE_DIR}/build/CompiledShaders/"
+    "${CMAKE_SOURCE_DIR}/build/bin/assets/shaders"
     COMMENT "Copying shaders in binary dir"
     VERBATIM
 )
