@@ -1,7 +1,7 @@
 DIR := $(subst /,\,${CURDIR})
 
 BUILD_DIR := bin_static
-OBJ_DIR := obj
+OBJ_DIR := .\bin_static\obj
 LIB_DIR := bin_static
 
 ASSEMBLY := engine

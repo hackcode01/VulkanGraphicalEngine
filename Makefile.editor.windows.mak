@@ -1,6 +1,6 @@
 DIR := $(subst /,\,${CURDIR})
 BUILD_DIR := bin
-OBJ_DIR := obj
+OBJ_DIR := .\bin\obj
 
 ASSEMBLY := editor
 EXTENSION := .exe
