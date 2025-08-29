@@ -45,6 +45,28 @@ void regenerateFramebuffers(RendererBackend* backend, VulkanSwapchain* swapchain
     VulkanRenderpass* renderPass);
 b8 recreateSwapchain(RendererBackend* backend);
 
+void uploadDataRange(VulkanContext *context, VkCommandPool pool, VkFence fence,
+    VkQueue queue, VulkanBuffer *buffer, u64 offset, u64 size, void *data) {
+    /**
+     * Create a host-visible staging buffer to upload to.
+     * Mark it as the source of the transfer.
+     */
+    VkBufferUsageFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VulkanBuffer staging;
+    vulkanBufferCreate(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, flags, true, &staging);
+
+    /** Load the data into the staging buffer. */
+    vulkanBufferLoadData(context, &staging, 0, size, 0, data);
+
+    /** Perform the copy from staging to the device local buffer. */
+    vulkanBufferCopyTo(context, pool, fence, queue, staging.handle, 0,
+        buffer->handle, offset, size);
+
+    /** Clean up the staging buffer. */
+    vulkanBufferDestroy(context, &staging);
+}
+
 b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applicationName) {
     /** Function pointers. */
     context.findMemoryIndex = findMemoryIndex;
@@ -239,6 +261,33 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
     }
 
     createBuffers(&context);
+
+    /** Temp test code. */
+    const u32 vertexesCount = 4;
+    vertex_3d vertexes[4];
+    engineZeroMemory(vertexes, sizeof(vertex_3d) * vertexesCount);
+
+    vertexes[0].position.x = 0.0;
+    vertexes[0].position.y = -0.5;
+
+    vertexes[1].position.x = 0.5;
+    vertexes[1].position.y = 0.5;
+
+    vertexes[2].position.x = 0;
+    vertexes[2].position.y = 0.5;
+
+    vertexes[3].position.x = 0.5;
+    vertexes[3].position.y = -0.5;
+
+    const u32 indexCount = 6;
+    u32 indices[6] = {0, 1, 2, 0, 3, 1};
+
+    uploadDataRange(&context, context.device.graphicsCommandPool, 0,
+        context.device.graphicsQueue, &context.objectVertexBuffer, 0,
+        sizeof(vertex_3d) * vertexesCount, vertexes);
+    uploadDataRange(&context, context.device.graphicsCommandPool, 0,
+        context.device.graphicsQueue, &context.objectIndexBuffer, 0,
+        sizeof(u32) * indexCount, indices);
 
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return true;
@@ -453,6 +502,21 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
         &context.mainRenderpass,
         context.swapchain.framebuffers[context.imageIndex].handle
     );
+
+    /** Temp test code. */
+    vulkanObjectShaderUse(&context, &context.objectShader);
+
+    /** Bind vertex buffer at offset. */
+    VkDeviceSize offsets[1] = {0};
+    vkCmdBindVertexBuffers(commandBuffer->handle, 0, 1,
+        &context.objectVertexBuffer.handle, (VkDeviceSize *)offsets);
+
+    /** Bind index buffer at offset. */
+    vkCmdBindIndexBuffer(commandBuffer->handle, context.objectIndexBuffer.handle,
+        0, VK_INDEX_TYPE_UINT32);
+
+    /** Issue the draw. */
+    vkCmdDrawIndexed(commandBuffer->handle, 6, 1, 0, 0, 0);
 
     return true;
 }

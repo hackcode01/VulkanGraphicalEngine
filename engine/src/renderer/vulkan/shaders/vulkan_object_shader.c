@@ -108,4 +108,8 @@ void vulkanObjectShaderDestroy(VulkanContext *context, struct VulkanObjectShader
     }
 }
 
-void vulkanObjectShaderUse(VulkanContext *context, struct VulkanObjectShader *shader) {}
+void vulkanObjectShaderUse(VulkanContext *context, struct VulkanObjectShader *shader) {
+    u32 imageIndex = context->imageIndex;
+    vulkanPipelineBind(&context->graphicsCommandBuffers[imageIndex],
+        VK_PIPELINE_BIND_POINT_GRAPHICS, &shader->pipeline);
+}
