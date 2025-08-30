@@ -7,6 +7,10 @@
 
 typedef struct RendererSystemState {
     RendererBackend backend;
+    mat4 projection;
+    mat4 view;
+    f32 nearClip;
+    f32 farClip;
 } RendererSystemState;
 
 static RendererSystemState *statePtr;
@@ -26,6 +30,13 @@ b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *app
         ENGINE_FATAL("Renderer backend failed to initialize. Shutting down.");
         return false;
     }
+
+    statePtr->nearClip = 0.1f;
+    statePtr->farClip = 1000.0f;
+    statePtr->projection = mat4_perspective(deg_to_rad(45.0f), 1280 / 720.0f, statePtr->nearClip, statePtr->farClip);
+
+    statePtr->view = mat4_translation((vec3){0, 0, -30.0f});
+    statePtr->view = mat4_inverse(statePtr->view);
 
     return true;
 }
@@ -58,6 +69,8 @@ b8 rendererEndFrame(f32 deltaTime) {
 
 void rendererOnResized(u16 width, u16 height) {
     if (statePtr) {
+        statePtr->projection = mat4_perspective(deg_to_rad(45.0f), width / (f32)height,
+                                                statePtr->nearClip, statePtr->farClip);
         statePtr->backend.resized(&statePtr->backend, width, height);
     } else {
         ENGINE_WARNING("Renderer backend does not exist to accept resize: %i %i",
@@ -68,14 +81,8 @@ void rendererOnResized(u16 width, u16 height) {
 b8 rendererDrawFrame(RenderPacket* packet) {
     /** If the begin frame returned successfully, mid-frame operations may continue. */
     if (rendererBeginFrame(packet->deltaTime)) {
-        mat4 projection = mat4_perspective(deg_to_rad(45.0f), 1280 / 720.0f,
-                                           0.1f, 1000.0f);
-        static f32 z = 0.0f;
-        z += 0.01f;
-        mat4 view = mat4_translation((vec3){0, 0, z});
-        view = mat4_inverse(view);
-
-        statePtr->backend.updateGlobalState(projection, view, vec3_zero(), vec4_one(), 0);
+        statePtr->backend.updateGlobalState(statePtr->projection, statePtr->view,
+            vec3_zero(), vec4_one(), 0);
 
         /** mat4 model = mat4_translation((vec3), {0, 0, 0}); */
         static f32 angle = 0.01f;
@@ -94,4 +101,8 @@ b8 rendererDrawFrame(RenderPacket* packet) {
     }
 
     return true;
+}
+
+void rendererSetView(mat4 view) {
+    statePtr->view = view;
 }

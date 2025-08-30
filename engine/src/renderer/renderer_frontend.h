@@ -10,4 +10,7 @@ void rendererOnResized(u16 width, u16 height);
 
 b8 rendererDrawFrame(RenderPacket *packet);
 
+/** HACK: this should not be exposed outside the engine. */
+ENGINE_API void rendererSetView(mat4 view);
+
 #endif
