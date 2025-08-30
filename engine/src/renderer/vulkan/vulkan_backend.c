@@ -509,8 +509,6 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
 }
 
 void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPosition, vec4 ambientColour, i32 mode) {
-    VulkanCommandBuffer *commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
-
     vulkanObjectShaderUse(&context, &context.objectShader);
 
     context.objectShader.globalUBO.projection = projection;
@@ -518,21 +516,6 @@ void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPositi
 
     /** Other UBO properties. */
     vulkanObjectShaderUpdateGlobalState(&context, &context.objectShader);
-
-    /** Temp test code. */
-    vulkanObjectShaderUse(&context, &context.objectShader);
-
-    /** Bind vertex buffer at offset. */
-    VkDeviceSize offsets[1] = {0};
-    vkCmdBindVertexBuffers(commandBuffer->handle, 0, 1,
-        &context.objectVertexBuffer.handle, (VkDeviceSize *)offsets);
-
-    /** Bind index buffer at offset. */
-    vkCmdBindIndexBuffer(commandBuffer->handle, context.objectIndexBuffer.handle,
-        0, VK_INDEX_TYPE_UINT32);
-
-    /** Issue the draw. */
-    vkCmdDrawIndexed(commandBuffer->handle, 6, 1, 0, 0, 0);
 }
 
 b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
@@ -609,6 +592,24 @@ b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
         context.imageIndex);
 
     return true;
+}
+
+void vulkanBackendUpdateObject(mat4 model) {
+    VulkanCommandBuffer* commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
+    
+    vulkanObjectShaderUpdateObject(&context, &context.objectShader, model);
+
+    vulkanObjectShaderUse(&context, &context.objectShader);
+
+    /** Bind vertex buffer at offset. */
+    VkDeviceSize offsets[1] = {0};
+    vkCmdBindVertexBuffers(commandBuffer->handle, 0, 1, &context.objectVertexBuffer.handle, (VkDeviceSize*)offsets);
+
+    /** Bind index buffer at offset. */
+    vkCmdBindIndexBuffer(commandBuffer->handle, context.objectIndexBuffer.handle, 0, VK_INDEX_TYPE_UINT32);
+
+    /** Issue the draw. */
+    vkCmdDrawIndexed(commandBuffer->handle, 6, 1, 0, 0, 0);
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(

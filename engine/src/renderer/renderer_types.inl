@@ -31,6 +31,8 @@ typedef struct RendererBackend {
 
     b8 (*beginFrame)(struct RendererBackend* backend, f32 deltaTime);
     b8 (*endFrame)(struct RendererBackend* backend, f32 deltaTime);
+
+    void (*updateObject)(mat4 model);
 } RendererBackend;
 
 typedef struct RenderPacket {

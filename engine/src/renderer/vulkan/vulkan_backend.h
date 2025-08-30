@@ -16,4 +16,6 @@ void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPositi
 
 b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime);
 
+void vulkanBackendUpdateObject(mat4 model);
+
 #endif

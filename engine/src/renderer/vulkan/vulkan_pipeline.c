@@ -108,6 +108,14 @@ b8 vulkanGraphicsPipelineCreate(
     /** Pipeline layout. */
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
 
+    /** Push constants. */
+    VkPushConstantRange pushConstant;
+    pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConstant.offset = sizeof(mat4) * 0;
+    pushConstant.size = sizeof(mat4) * 2;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
+
     /** Descriptor set layouts. */
     pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayoutCount;
     pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts;
