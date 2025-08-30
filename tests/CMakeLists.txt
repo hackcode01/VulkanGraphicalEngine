@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+
+set(PROJECT_NAME Tests)
+project(${PROJECT_NAME})
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+set(INCLUDE_FILES
+    include/memory_test.h
+)
+
+set(SOURCES_FILES
+    src/memory_test.c
+)
+
+add_executable(${PROJECT_NAME} ${INCLUDE_FILES} ${SOURCES_FILES} main.c)
+
+target_link_libraries(${PROJECT_NAME} Engine)
+
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+    ${CMAKE_BINARY_DIR}/tests/
+)
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
+    ${INCLUDE_FILES} ${SOURCE_FILES} main.c)
