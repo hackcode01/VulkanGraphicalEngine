@@ -5,6 +5,7 @@ b8 rendererBackendCreate(RendererBackendType type, RendererBackend *outRendererB
         outRendererBackend->initialize = vulkanRendererBackendInitialize;
         outRendererBackend->shutdown = vulkanRendererBackendShutdown;
         outRendererBackend->beginFrame = vulkanRendererBackendBeginFrame;
+        outRendererBackend->updateGlobalState = vulkanRendererUpdateGlobalState;
         outRendererBackend->endFrame = vulkanRendererBackendEndFrame;
         outRendererBackend->resized = vulkanRendererBackendOnResize;
 
@@ -18,6 +19,7 @@ void rendererBackendDestroy(RendererBackend* rendererBackend) {
     rendererBackend->initialize = 0;
     rendererBackend->shutdown = 0;
     rendererBackend->beginFrame = 0;
+    rendererBackend->updateGlobalState = 0;
     rendererBackend->endFrame = 0;
     rendererBackend->resized = 0;
 }

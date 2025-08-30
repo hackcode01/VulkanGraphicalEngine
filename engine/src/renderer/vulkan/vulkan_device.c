@@ -90,23 +90,45 @@ b8 vulkanDeviceCreate(VulkanContext* context) {
     VkPhysicalDeviceFeatures device_features = {};
     device_features.samplerAnisotropy = VK_TRUE;
 
-    VkDeviceCreateInfo device_create_info = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
-    device_create_info.queueCreateInfoCount = indexCount;
-    device_create_info.pQueueCreateInfos = queueCreateInfos;
-    device_create_info.pEnabledFeatures = &device_features;
-    device_create_info.enabledExtensionCount = 1;
+    b8 portabilityRequired = false;
+    u32 availableExtensionCount = 0;
+    VkExtensionProperties* availableExtensions = 0;
+    VK_CHECK(vkEnumerateDeviceExtensionProperties(context->device.physicalDevice, 0, &availableExtensionCount, 0))
 
-    const char* extension_names = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-    device_create_info.ppEnabledExtensionNames = &extension_names;
+    if (availableExtensionCount != 0) {
+        availableExtensions = engineAllocate(sizeof(VkExtensionProperties) * availableExtensionCount, MEMORY_TAG_RENDERER);
+        VK_CHECK(vkEnumerateDeviceExtensionProperties(context->device.physicalDevice, 0, &availableExtensionCount, availableExtensions))
+
+        for (u32 i = 0; i < availableExtensionCount; ++i) {
+            if (stringsEqual(availableExtensions[i].extensionName, "VK_KHR_portability_subset")) {
+                ENGINE_INFO("Adding required extension 'VK_KHR_portability_subset'.");
+                portabilityRequired = true;
+                break;
+            }
+        }
+    }
+    engineFree(availableExtensions, sizeof(VkExtensionProperties) * availableExtensionCount, MEMORY_TAG_RENDERER);
+
+    u32 extensionCount = portabilityRequired ? 2 : 1;
+    const char** extensionNames = portabilityRequired
+            ? (const char* [2]) { VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset" }
+            : (const char* [1]) { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+    VkDeviceCreateInfo deviceCreateInfo = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+    deviceCreateInfo.queueCreateInfoCount = indexCount;
+    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
+    deviceCreateInfo.pEnabledFeatures = &device_features;
+    deviceCreateInfo.enabledExtensionCount = extensionCount;
+    deviceCreateInfo.ppEnabledExtensionNames = extensionNames;
 
     /** Deprecated and ignored, so pass nothing. */
-    device_create_info.enabledLayerCount = 0;
-    device_create_info.ppEnabledLayerNames = 0;
+    deviceCreateInfo.enabledLayerCount = 0;
+    deviceCreateInfo.ppEnabledLayerNames = 0;
 
     /** Create the device. */
     VK_CHECK(vkCreateDevice(
         context->device.physicalDevice,
-        &device_create_info,
+        &deviceCreateInfo,
         context->allocator,
         &context->device.logicalDevice)
     )

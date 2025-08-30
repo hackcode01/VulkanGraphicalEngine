@@ -4,6 +4,8 @@
 #include "../../defines.h"
 #include "../../core/asserts.h"
 
+#include "../renderer_types.inl"
+
 #include <vulkan/vulkan.h>
 
 /**
@@ -145,6 +147,18 @@ typedef struct VulkanPipeline {
 typedef struct VulkanObjectShader {
     /** Vertex and fragment shaders. */
     VulkanShaderStage stages[OBJECT_SHADER_STAGE_COUNT];
+
+    VkDescriptorPool globalDescriptorPool;
+    VkDescriptorSetLayout globalDescriptorSetLayout;
+
+    /** One descriptor set per frame - max 3 for triple-buffering. */
+    VkDescriptorSet globalDescriptorSets[3];
+
+    /** Global uniform object. */
+    GlobalUniformObject globalUBO;
+
+    /** Global uniform buffer. */
+    VulkanBuffer globalUniformBuffer;
 
     VulkanPipeline pipeline;
 } VulkanObjectShader;

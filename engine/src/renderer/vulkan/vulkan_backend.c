@@ -267,17 +267,19 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
     vertex_3d vertexes[4];
     engineZeroMemory(vertexes, sizeof(vertex_3d) * vertexesCount);
 
-    vertexes[0].position.x = 0.0;
-    vertexes[0].position.y = -0.5;
+    const f32 f = 10.0f;
 
-    vertexes[1].position.x = 0.5;
-    vertexes[1].position.y = 0.5;
+    vertexes[0].position.x = -0.5 * f;
+    vertexes[0].position.y = -0.5 * f;
 
-    vertexes[2].position.x = 0;
-    vertexes[2].position.y = 0.5;
+    vertexes[1].position.x = 0.5 * f;
+    vertexes[1].position.y = 0.5 * f;
 
-    vertexes[3].position.x = 0.5;
-    vertexes[3].position.y = -0.5;
+    vertexes[2].position.x = -0.5 * f;
+    vertexes[2].position.y = 0.5 * f;
+
+    vertexes[3].position.x = 0.5 * f;
+    vertexes[3].position.y = -0.5 * f;
 
     const u32 indexCount = 6;
     u32 indices[6] = {0, 1, 2, 0, 3, 1};
@@ -503,6 +505,20 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
         context.swapchain.framebuffers[context.imageIndex].handle
     );
 
+    return true;
+}
+
+void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPosition, vec4 ambientColour, i32 mode) {
+    VulkanCommandBuffer *commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
+
+    vulkanObjectShaderUse(&context, &context.objectShader);
+
+    context.objectShader.globalUBO.projection = projection;
+    context.objectShader.globalUBO.view = view;
+
+    /** Other UBO properties. */
+    vulkanObjectShaderUpdateGlobalState(&context, &context.objectShader);
+
     /** Temp test code. */
     vulkanObjectShaderUse(&context, &context.objectShader);
 
@@ -517,8 +533,6 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
 
     /** Issue the draw. */
     vkCmdDrawIndexed(commandBuffer->handle, 6, 1, 0, 0, 0);
-
-    return true;
 }
 
 b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
