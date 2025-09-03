@@ -40,7 +40,7 @@ ENGINE_API void* _dynamicArrayInsertAt(void* array, u64 index, void* value_ptr);
 #define dynamicArrayReserve(type, capacity) \
     _dynamicArrayCreate(capacity, sizeof(type))
 
-#define dynamicArrayDestroy(array) _dynamicArrayDestroy(array);
+#define dynamicArrayDestroy(array) _dynamicArrayDestroy(array)
 
 #define dynamicArrayPush(array, value)           \
     {                                            \

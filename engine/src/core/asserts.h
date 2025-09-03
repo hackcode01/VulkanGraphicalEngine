@@ -1,9 +1,9 @@
-#ifndef __ASSERTS_H__
-#define __ASSERTS_H__
+#ifndef __ENGINE_ASSERTS_H__
+#define __ENGINE_ASSERTS_H__
 
 #include "../defines.h"
 
-/* Disable assertions by commenting out the below ling */
+/** Disable assertions by commenting out the below ling */
 #define ENGINE_ASSERTIONS_ENABLED
 
 #ifdef ENGINE_ASSERTIONS_ENABLED
@@ -15,7 +15,7 @@
 #define debugBreak() __builtin_trap()
 #endif
 
-ENGINE_API void reportAssertionFailure(const char* expression, const char* message, const char* file, i32 line);
+ENGINE_API void reportAssertionFailure(const char *expression, const char *message, const char *file, i32 line);
 
 #define ENGINE_ASSERT(expression) {                                  \
     if (expression) {} else {                                        \
@@ -40,7 +40,7 @@ ENGINE_API void reportAssertionFailure(const char* expression, const char* messa
 }
 
 #else
-/* Does nothing at all. */
+/** Does nothing at all. */
 #define ENGINE_ASSERT_DEBUG(expression)
 #endif
 
@@ -50,4 +50,4 @@ ENGINE_API void reportAssertionFailure(const char* expression, const char* messa
 #define ENGINE_ASSERT_DEBUG(expression)
 #endif
 
-#endif /* __ASSERTS_H__ */
+#endif

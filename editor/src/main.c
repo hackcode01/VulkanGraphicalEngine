@@ -6,8 +6,8 @@
 #include "game.h"
 
 /** Define the function to create a game. */
-b8 createGame(Game* outGame) {
-    // Application configuration.
+b8 createGame(Game *outGame) {
+    /** Application configuration. */
     outGame->appConfig.startPositionX = 100;
     outGame->appConfig.startPositionY = 100;
     outGame->appConfig.startWidth = 1280;
@@ -34,20 +34,21 @@ int main(void) {
         return FAILED_CREATE_GAME;
     }
 
-    /* Ensure the function pointers exist. */
+    /** Ensure the function pointers exist. */
     if (!gameInstance.render || !gameInstance.update || !gameInstance.initialize ||
         !gameInstance.onResize) {
+
         ENGINE_FATAL("The game's function pointers must be assigned!")
         return FAILED_ASSIGNED_FUNCTION_GAME;
     }
 
-    /* Initialization. */
+    /** Initialization. */
     if (!applicationCreate(&gameInstance)) {
-        ENGINE_INFO("Application failed to create.");
+        ENGINE_INFO("Application failed to create.")
         return FAILED_CREATE_APPLICATION;
     }
 
-    /* Begin the game loop. */
+    /** Begin the game loop. */
     if (!applicationRun()) {
         ENGINE_INFO("Application didn't shutdown gracefully.")
         return FAILED_APPLICATION_SHUTDOWN_GRACEFULLY;
