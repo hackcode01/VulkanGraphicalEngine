@@ -9,6 +9,8 @@ b8 rendererBackendCreate(RendererBackendType type, RendererBackend *outRendererB
         outRendererBackend->endFrame = vulkanRendererBackendEndFrame;
         outRendererBackend->resized = vulkanRendererBackendOnResize;
         outRendererBackend->updateObject = vulkanBackendUpdateObject;
+        outRendererBackend->createTexture = vulkanRendererCreateTexture;
+        outRendererBackend->destroyTexture = vulkanRendererDestroyTexture;
 
         return true;
     }
@@ -24,4 +26,6 @@ void rendererBackendDestroy(RendererBackend* rendererBackend) {
     rendererBackend->endFrame = 0;
     rendererBackend->resized = 0;
     rendererBackend->updateObject = 0;
+    rendererBackend->createTexture = 0;
+    rendererBackend->destroyTexture = 0;
 }

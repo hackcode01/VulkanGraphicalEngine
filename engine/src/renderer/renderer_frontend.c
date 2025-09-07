@@ -106,3 +106,21 @@ b8 rendererDrawFrame(RenderPacket* packet) {
 void rendererSetView(mat4 view) {
     statePtr->view = view;
 }
+
+void rendererCreateTexture(
+    const char *name,
+    b8 autoRelease,
+    i32 width,
+    i32 height,
+    i32 channelCount,
+    const u8 *pixels,
+    b8 hasTransparency,
+    struct Texture *outTexture) {
+
+    statePtr->backend.createTexture(name, autoRelease, width, height, channelCount,
+        pixels, hasTransparency, outTexture);
+}
+
+void rendererDestroyTexture(struct Texture *texture) {
+    statePtr->backend.destroyTexture(texture);
+}

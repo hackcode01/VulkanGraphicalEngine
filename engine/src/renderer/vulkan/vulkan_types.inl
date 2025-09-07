@@ -222,6 +222,12 @@ typedef struct VulkanContext {
     u64 geometryIndexOffset;
 
     i32 (*findMemoryIndex)(u32 typeFilter, u32 propertyFlags);
+
 } VulkanContext;
+
+typedef struct VulkanTextureData {
+    VulkanImage image;
+    VkSampler sampler;
+} VulkanTextureData;
 
 #endif
