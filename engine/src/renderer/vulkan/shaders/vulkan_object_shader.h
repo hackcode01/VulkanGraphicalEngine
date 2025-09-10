@@ -11,9 +11,15 @@ void vulkanObjectShaderDestroy(VulkanContext *context, struct VulkanObjectShader
 void vulkanObjectShaderUse(VulkanContext *context, struct VulkanObjectShader *shader);
 
 void vulkanObjectShaderUpdateGlobalState(VulkanContext *context,
-    struct VulkanObjectShader *shader);
+    struct VulkanObjectShader *shader, f32 deltaTime);
 
 void vulkanObjectShaderUpdateObject(VulkanContext *context,
-    struct VulkanObjectShader *shader, mat4 model);
+    struct VulkanObjectShader *shader, GeometryRenderData data);
+
+b8 vulkanObjectShaderAcquireResources(VulkanContext *context,
+    struct VulkanObjectShader *shader, u32 *outObjectID);
+
+void vulkanObjectShaderReleaseResources(VulkanContext *context,
+    struct VulkanObjectShader *shader, u32 objectID);
 
 #endif

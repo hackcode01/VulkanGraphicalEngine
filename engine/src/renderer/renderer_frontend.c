@@ -5,12 +5,16 @@
 #include "../engine_memory/engine_memory.h"
 #include "../engine_math/engine_math.h"
 
+#include "../resources/resource_types.h"
+
 typedef struct RendererSystemState {
     RendererBackend backend;
     mat4 projection;
     mat4 view;
     f32 nearClip;
     f32 farClip;
+
+    Texture defaultTexture;
 } RendererSystemState;
 
 static RendererSystemState *statePtr;
@@ -38,11 +42,47 @@ b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *app
     statePtr->view = mat4_translation((vec3){0, 0, -30.0f});
     statePtr->view = mat4_inverse(statePtr->view);
 
+    /**
+     * Create default texture, a 256x256 blue/white checkerboard pattern.
+     * This is done in code to eliminate asset dependencies.
+     */
+    ENGINE_TRACE("Creating default texture...")
+    const u32 textureDimension = 256;
+    const u32 channels = 4;
+    const u32 pixelCount = textureDimension * textureDimension;
+    u8 pixels[262144];
+    engineSetMemory(pixels, 255, sizeof(u8) * pixelCount * channels);
+
+    /** Each pixels. */
+    for (u64 row = 0; row < textureDimension; ++row) {
+        for (u64 column = 0; column < textureDimension; ++column) {
+            u64 index = (row * textureDimension) + column;
+            u64 indexBpp = index * channels;
+
+            if (row % 2) {
+                if (column % 2) {
+                    pixels[indexBpp + 0] = 0;
+                    pixels[indexBpp + 1] = 0;
+                }
+            } else {
+                if (!(column % 2)) {
+                    pixels[indexBpp + 0] = 0;
+                    pixels[indexBpp + 1] = 0;
+                }
+            }
+        }
+    }
+
+    rendererCreateTexture("default", false, textureDimension, textureDimension, 4,
+        pixels, false, &statePtr->defaultTexture);
+
     return true;
 }
 
 void rendererSystemShutdown(void *state) {
     if (statePtr) {
+        rendererDestroyTexture(&statePtr->defaultTexture);
+
         statePtr->backend.shutdown(&statePtr->backend);
     }
     statePtr = 0;
@@ -84,12 +124,18 @@ b8 rendererDrawFrame(RenderPacket* packet) {
         statePtr->backend.updateGlobalState(statePtr->projection, statePtr->view,
             vec3_zero(), vec4_one(), 0);
 
-        /** mat4 model = mat4_translation((vec3), {0, 0, 0}); */
-        static f32 angle = 0.01f;
-        angle += 0.001f;
-        quat rotation = quat_from_axis_angle(vec3_forward(), angle, false);
-        mat4 model = quat_to_rotation_matrix(rotation, vec3_zero());
-        statePtr->backend.updateObject(model);
+        mat4 model = mat4_translation((vec3){0, 0, 0});
+        /**
+         * Static f32 angle = 0.01f;
+         * angle += 0.001f;
+         * quat rotation = quat_from_axis_angle(vec3_forward(), angle, false);
+         * mat4 model = quat_to_rotation_matrix(rotation, vec3_zero());
+         */
+        GeometryRenderData data = {};
+        data.objectID = 0;
+        data.model = model;
+        data.textures[0] = &statePtr->defaultTexture;
+        statePtr->backend.updateObject(data);
 
         /** End the frame. If this fails, it's likely unrecoverable. */
         b8 result = rendererEndFrame(packet->deltaTime);

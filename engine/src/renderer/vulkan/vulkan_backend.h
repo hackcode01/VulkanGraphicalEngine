@@ -18,9 +18,7 @@ void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPositi
 
 b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime);
 
-void vulkanBackendUpdateObject(mat4 model);
-
-void vulkanBackendUpdateObject(mat4 model);
+void vulkanBackendUpdateObject(GeometryRenderData data);
 
 void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
     i32 width, i32 height, i32 channelCount, const u8 *pixels, b8 hasTransparency,

@@ -272,15 +272,23 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
 
     vertexes[0].position.x = -0.5 * f;
     vertexes[0].position.y = -0.5 * f;
+    vertexes[0].textureCoord.x = 0.0f;
+    vertexes[0].textureCoord.y = 0.0f;
 
     vertexes[1].position.x = 0.5 * f;
     vertexes[1].position.y = 0.5 * f;
+    vertexes[1].textureCoord.x = 1.0f;
+    vertexes[1].textureCoord.y = 1.0f;
 
     vertexes[2].position.x = -0.5 * f;
     vertexes[2].position.y = 0.5 * f;
+    vertexes[2].textureCoord.x = 0.0f;
+    vertexes[2].textureCoord.y = 1.0f;
 
     vertexes[3].position.x = 0.5 * f;
     vertexes[3].position.y = -0.5 * f;
+    vertexes[3].textureCoord.x = 1.0f;
+    vertexes[3].textureCoord.y = 0.0f;
 
     const u32 indexCount = 6;
     u32 indices[6] = {0, 1, 2, 0, 3, 1};
@@ -291,6 +299,12 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
     uploadDataRange(&context, context.device.graphicsCommandPool, 0,
         context.device.graphicsQueue, &context.objectIndexBuffer, 0,
         sizeof(u32) * indexCount, indices);
+
+    u32 objectID = 0;
+    if (!vulkanObjectShaderAcquireResources(&context, &context.objectShader, &objectID)) {
+        ENGINE_ERROR("Failed to acquire shader resources.")
+        return false;
+    }
 
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return true;
@@ -401,35 +415,36 @@ void vulkanRendererBackendOnResize(RendererBackend* backend, u16 width, u16 heig
 }
 
 b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
+    context.frameDeltaTime = deltaTime;
     VulkanDevice* device = &context.device;
-    
+
     /** Check if recreating swap chain and boot out. */
     if (context.recreatingSwapchain) {
         VkResult result = vkDeviceWaitIdle(device->logicalDevice);
-    
+
         if (!vulkanResultIsSuccess(result)) {
             ENGINE_ERROR("vulkanRendererBackendBeginFrame vkDeviceWaitIdle (1) "
                 "failed: '%s'", vulkanResultString(result, true));
             return false;
         }
-    
+
         ENGINE_INFO("Recreating swapchain, booting.");
         return false;
     }
-    
+
     /**
      * Check if the framebuffer has been resized. If so,
      * a new swapchain must be created.
      */
     if (context.framebufferSizeGeneration != context.framebufferSizeLastGeneration) {
         VkResult result = vkDeviceWaitIdle(device->logicalDevice);
-    
+
         if (!vulkanResultIsSuccess(result)) {
             ENGINE_ERROR("vulkanRendererBackendBeginFrame vkDeviceWaitIdle (2) "
                 "failed: '%s'", vulkanResultString(result, true));
             return false;
         }
-    
+
         /**
          * If the swapchain recreation failed (because, for example,
          * the window was minimized), boot out before unsetting the flag.
@@ -437,11 +452,11 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
         if (!recreateSwapchain(backend)) {
             return false;
         }
-    
+
         ENGINE_INFO("Resized, booting.");
         return false;
     }
-    
+
     /**
      * Wait for the execution of the current frame to complete.
      * The fence being free will allow this one to move on.
@@ -454,7 +469,7 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
         ENGINE_WARNING("In-flight fence wait failure!")
         return false;
     }
-    
+
     /**
      * Acquire the next image from the swap chain.
      * Pass along the semaphore that should signaled when this completes.
@@ -468,15 +483,15 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
         context.imageAvailableSemaphores[context.currentFrame],
         0,
         &context.imageIndex)) {
-    
+
         return false;
     }
-    
+
     /** Begin recording commands. */
     VulkanCommandBuffer* commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
     vulkanCommandBufferReset(commandBuffer);
     vulkanCommandBufferBegin(commandBuffer, false, false, false);
-    
+
     /** Dynamic state. */
     VkViewport viewport;
     viewport.x = 0.0f;
@@ -485,20 +500,20 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
     viewport.height = -(f32)context.framebufferHeight;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    
+
     /** Scissor. */
     VkRect2D scissor;
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     scissor.extent.width = context.framebufferWidth;
     scissor.extent.height = context.framebufferHeight;
-    
+
     vkCmdSetViewport(commandBuffer->handle, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer->handle, 0, 1, &scissor);
-    
+
     context.mainRenderpass.width = context.framebufferWidth;
     context.mainRenderpass.height = context.framebufferHeight;
-    
+
     /** Begin the render pass. */
     vulkanRenderPassBegin(
         commandBuffer,
@@ -516,7 +531,8 @@ void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPositi
     context.objectShader.globalUBO.view = view;
 
     /** Other UBO properties. */
-    vulkanObjectShaderUpdateGlobalState(&context, &context.objectShader);
+    vulkanObjectShaderUpdateGlobalState(&context, &context.objectShader,
+        context.frameDeltaTime);
 }
 
 b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
@@ -595,10 +611,10 @@ b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
     return true;
 }
 
-void vulkanBackendUpdateObject(mat4 model) {
+void vulkanBackendUpdateObject(GeometryRenderData data) {
     VulkanCommandBuffer* commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
-    
-    vulkanObjectShaderUpdateObject(&context, &context.objectShader, model);
+
+    vulkanObjectShaderUpdateObject(&context, &context.objectShader, data);
 
     vulkanObjectShaderUse(&context, &context.objectShader);
 
@@ -830,7 +846,7 @@ void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
     outTexture->width = width;
     outTexture->height = height;
     outTexture->channelCount = channelCount;
-    outTexture->generation = 0;
+    outTexture->generation = INVALID_ID;
 
     outTexture->internalData = (VulkanTextureData*)engineAllocate(sizeof(VulkanTextureData), MEMORY_TAG_TEXTURE);
     VulkanTextureData *data = (VulkanTextureData*)outTexture->internalData;
@@ -862,6 +878,14 @@ void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
     vulkanImageTransitionLayout(
         &context, &tempBuffer, &data->image, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    vulkanImageCopyFromBuffer(&context, &data->image, staging.handle, &tempBuffer);
+
+    vulkanBufferDestroy(&context, &staging);
+
+    /** Transition from optimal for data reciept to shader-read-only optimal layout. */
+    vulkanImageTransitionLayout(&context, &tempBuffer, &data->image, imageFormat,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vulkanCommandBufferEndSingleUse(&context, pool, &tempBuffer, queue);
 
@@ -895,6 +919,8 @@ void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
 }
 
 void vulkanRendererDestroyTexture(Texture *texture) {
+    vkDeviceWaitIdle(context.device.logicalDevice);
+
     VulkanTextureData *data = (VulkanTextureData*)texture->internalData;
 
     vulkanImageDestroy(&context, &data->image);

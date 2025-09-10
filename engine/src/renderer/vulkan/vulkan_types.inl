@@ -144,6 +144,20 @@ typedef struct VulkanPipeline {
 } VulkanPipeline;
 
 #define OBJECT_SHADER_STAGE_COUNT 2
+
+typedef struct VulkanDescriptorState {
+    u32 generations[3];
+} VulkanDescriptorState;
+
+#define VULKAN_OBJECT_SHADER_DESCRIPTOR_COUNT 2
+typedef struct VulkanObjectShaderObjectState {
+    VkDescriptorSet descriptorSets[3];
+
+    VulkanDescriptorState descriptorStates[VULKAN_OBJECT_SHADER_DESCRIPTOR_COUNT];
+} VulkanObjectShaderObjectState;
+
+#define VULKAN_OBJECT_MAX_OBJECT_COUNT 1024
+
 typedef struct VulkanObjectShader {
     /** Vertex and fragment shaders. */
     VulkanShaderStage stages[OBJECT_SHADER_STAGE_COUNT];
@@ -160,10 +174,21 @@ typedef struct VulkanObjectShader {
     /** Global uniform buffer. */
     VulkanBuffer globalUniformBuffer;
 
+    VkDescriptorPool objectDescriptorPool;
+    VkDescriptorSetLayout objectDescriptorSetLayout;
+
+    VulkanBuffer objectUniformBuffer;
+
+    u32 objectUniformBufferIndex;
+
+    VulkanObjectShaderObjectState objectStates[VULKAN_OBJECT_MAX_OBJECT_COUNT];
+
     VulkanPipeline pipeline;
 } VulkanObjectShader;
 
 typedef struct VulkanContext {
+    f32 frameDeltaTime;
+
     /** The framebuffer's current width. */
     u32 framebufferWidth;
 

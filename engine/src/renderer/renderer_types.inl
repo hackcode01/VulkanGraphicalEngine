@@ -19,6 +19,20 @@ typedef struct GlobalUniformObject {
     mat4 m_reserved_2;
 } GlobalUniformObject;
 
+typedef struct ObjectUniformObject {
+    vec4 diffuseColor;
+    vec4 v_reserved_1;
+    vec4 v_reserved_2;
+    vec4 v_reserved_3;
+    vec4 v_reserved_4;
+} ObjectUniformObject;
+
+typedef struct GeometryRenderData {
+    u32 objectID;
+    mat4 model;
+    Texture *textures[16];
+} GeometryRenderData;
+
 typedef struct RendererBackend {
     u64 frameNumber;
 
@@ -34,7 +48,7 @@ typedef struct RendererBackend {
     b8 (*beginFrame)(struct RendererBackend* backend, f32 deltaTime);
     b8 (*endFrame)(struct RendererBackend* backend, f32 deltaTime);
 
-    void (*updateObject)(mat4 model);
+    void (*updateObject)(GeometryRenderData data);
 
     void (*createTexture)(
         const char *name,

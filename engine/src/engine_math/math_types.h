@@ -102,6 +102,7 @@ typedef union mat4_u {
 
 typedef struct vertex_3d {
     vec3 position;
+    vec2 textureCoord;
 } vertex_3d;
 
 #endif
