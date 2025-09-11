@@ -32,6 +32,86 @@ void createTexture(Texture *texture) {
     texture->generation = INVALID_ID;
 }
 
+b8 loadTexture(const char *textureName, Texture *texture) {
+    char *formatStr = "assets/textures%s.%s";
+    const i32 requiredChannelCount = 4;
+    stbi_set_flip_vertically_on_load(true);
+    char fullFilePath[512];
+
+    stringFormat(fullFilePath, formatStr, textureName, "png");
+
+    Texture tempTexture;
+
+    u8 *data = stbi_load(
+        fullFilePath,
+        (i32*)&tempTexture.width,
+        (i32*)&tempTexture.height,
+        (i32*)&tempTexture.channelCount,
+        requiredChannelCount);
+
+    tempTexture.channelCount = requiredChannelCount;
+
+    if (data) {
+        u32 currentGeneration = texture->generation;
+        texture->generation = INVALID_ID;
+
+        u64 totalSize = tempTexture.width * tempTexture.height * requiredChannelCount;
+        b32 hasTransparency = false;
+        for (u64 i = 0; i < totalSize; i += requiredChannelCount) {
+            u8 alpha = data[i + 3];
+            if (alpha < 255) {
+                hasTransparency = true;
+                break;
+            }
+        }
+
+        if (stbi_failure_reason()) {
+            ENGINE_WARNING("loadTexture() failed to load file '%s': %s", fullFilePath,
+                stbi_failure_reason())
+        }
+
+        rendererCreateTexture(textureName, true, tempTexture.width,
+            tempTexture.height, tempTexture.channelCount, data, hasTransparency,
+            &tempTexture);
+
+        Texture old = *texture;
+        *texture = tempTexture;
+
+        rendererDestroyTexture(&old);
+
+        if (currentGeneration == INVALID_ID) {
+            texture->generation = 0;
+        } else {
+            texture->generation = currentGeneration + 1;
+        }
+
+        stbi_image_free(data);
+        return true;
+    } else {
+        if (stbi_failure_reason()) {
+            ENGINE_WARNING("loadTexture() failed to load file '%s': %s", fullFilePath,
+                stbi_failure_reason())
+        }
+
+        return false;
+    }
+}
+
+b8 eventOnDebugEvent(u16 code, void *sender, void *listenerInstance, EventContext data) {
+    const char *names[3] = {
+        "cobblestone",
+        "paving_1",
+        "paving_2"
+    };
+    static i8 choice = 2;
+    choice++;
+    choice %= 3;
+
+    loadTexture(names[choice], &statePtr->testDiffuse);
+
+    return true;
+}
+
 b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *applicationName) {
     *memoryRequirement = sizeof(RendererSystemState);
     if (state == 0) {
@@ -39,6 +119,10 @@ b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *app
     }
 
     statePtr = state;
+
+    eventRegister(EVENT_CODE_DEBUG_0, statePtr, eventOnDebugEvent);
+
+    statePtr->backend.defaultDiffuse = &statePtr->defaultTexture;
 
     rendererBackendCreate(RENDERER_BACKEND_TYPE_VULKAN, &statePtr->backend);
     statePtr->backend.frameNumber = 0;
@@ -89,12 +173,20 @@ b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *app
     rendererCreateTexture("default", false, textureDimension, textureDimension, 4,
         pixels, false, &statePtr->defaultTexture);
 
+    statePtr->defaultTexture.generation = INVALID_ID;
+
+    createTexture(&statePtr->testDiffuse);
+
     return true;
 }
 
 void rendererSystemShutdown(void *state) {
     if (statePtr) {
+        eventUnregister(EVENT_CODE_DEBUG_0, statePtr, eventOnDebugEvent);
+
         rendererDestroyTexture(&statePtr->defaultTexture);
+
+        rendererDestroyTexture(&statePtr->testDiffuse);
 
         statePtr->backend.shutdown(&statePtr->backend);
     }
@@ -147,7 +239,7 @@ b8 rendererDrawFrame(RenderPacket* packet) {
         GeometryRenderData data = {};
         data.objectID = 0;
         data.model = model;
-        data.textures[0] = &statePtr->defaultTexture;
+        data.textures[0] = &statePtr->testDiffuse;
         statePtr->backend.updateObject(data);
 
         /** End the frame. If this fails, it's likely unrecoverable. */
