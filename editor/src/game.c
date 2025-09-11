@@ -4,6 +4,7 @@
 #include "../../engine/src/engine_memory/engine_memory.h"
 
 #include "../../engine/src/core/input.h"
+#include "../../engine/src/core/event.h"
 
 #include "../../engine/src/engine_math/engine_math.h"
 
@@ -61,6 +62,12 @@ b8 gameUpdate(Game *gameInstance, f32 deltaTime) {
     if (inputIsKeyUp('M') && inputWasKeyDown('M')) {
         ENGINE_DEBUG("Allocations: %llu (%llu this frame)",
             allocationCount, allocationCount - prevAllocationCount)
+    }
+
+    if (inputIsKeyUp('T') && inputWasKeyDown('T')) {
+        ENGINE_DEBUG("Swapping texture!")
+        EventContext context = {};
+        eventFire(EVENT_CODE_DEBUG_0, gameInstance, context);
     }
 
     GameState *state = (GameState*)gameInstance->state;

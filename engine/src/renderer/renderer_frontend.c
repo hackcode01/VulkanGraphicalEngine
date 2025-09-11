@@ -7,6 +7,12 @@
 
 #include "../resources/resource_types.h"
 
+#include "../engine_memory/engine_string.h"
+#include "../core/event.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "../vendor/stb_image.h"
+
 typedef struct RendererSystemState {
     RendererBackend backend;
     mat4 projection;
@@ -15,9 +21,16 @@ typedef struct RendererSystemState {
     f32 farClip;
 
     Texture defaultTexture;
+
+    Texture testDiffuse;
 } RendererSystemState;
 
 static RendererSystemState *statePtr;
+
+void createTexture(Texture *texture) {
+    engineZeroMemory(texture, sizeof(Texture));
+    texture->generation = INVALID_ID;
+}
 
 b8 rendererSystemInitialize(u64 *memoryRequirement, void *state, const char *applicationName) {
     *memoryRequirement = sizeof(RendererSystemState);

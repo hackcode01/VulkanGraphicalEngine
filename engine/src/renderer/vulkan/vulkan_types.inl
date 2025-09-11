@@ -183,6 +183,9 @@ typedef struct VulkanObjectShader {
 
     VulkanObjectShaderObjectState objectStates[VULKAN_OBJECT_MAX_OBJECT_COUNT];
 
+    /** Pointers to default textures. */
+    Texture *defaultDiffuse;
+
     VulkanPipeline pipeline;
 } VulkanObjectShader;
 

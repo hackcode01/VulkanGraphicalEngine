@@ -256,7 +256,9 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
     }
 
     /** Create builtin shaders. */
-    if (!vulkanObjectShaderCreate(&context, &context.objectShader)) {
+    if (!vulkanObjectShaderCreate(&context, backend->defaultDiffuse,
+        &context.objectShader)) {
+
         ENGINE_ERROR("Error loading builtin basicLightning shader.")
         return false;
     }
@@ -881,13 +883,13 @@ void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
 
     vulkanImageCopyFromBuffer(&context, &data->image, staging.handle, &tempBuffer);
 
-    vulkanBufferDestroy(&context, &staging);
-
     /** Transition from optimal for data reciept to shader-read-only optimal layout. */
     vulkanImageTransitionLayout(&context, &tempBuffer, &data->image, imageFormat,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vulkanCommandBufferEndSingleUse(&context, pool, &tempBuffer, queue);
+
+    vulkanBufferDestroy(&context, &staging);
 
     VkSamplerCreateInfo samplerInfo = {VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -918,16 +920,17 @@ void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
     outTexture->generation++;
 }
 
-void vulkanRendererDestroyTexture(Texture *texture) {
+void vulkanRendererDestroyTexture(struct Texture *texture) {
     vkDeviceWaitIdle(context.device.logicalDevice);
 
     VulkanTextureData *data = (VulkanTextureData*)texture->internalData;
+    if (data) {
+        vulkanImageDestroy(&context, &data->image);
+        engineZeroMemory(&data->image, sizeof(VulkanImage));
+        vkDestroySampler(context.device.logicalDevice, data->sampler, context.allocator);
+        data->sampler = 0;
+        engineFree(texture->internalData, sizeof(VulkanTextureData), MEMORY_TAG_TEXTURE);
+    }
 
-    vulkanImageDestroy(&context, &data->image);
-    engineZeroMemory(&data->image, sizeof(VulkanImage));
-    vkDestroySampler(context.device.logicalDevice, data->sampler, context.allocator);
-    data->sampler = 0;
-
-    engineFree(texture->internalData, sizeof(VulkanTextureData), MEMORY_TAG_TEXTURE);
     engineZeroMemory(texture, sizeof(struct Texture));
 }

@@ -11,7 +11,11 @@
 
 #define BUILTIN_SHADER_NAME_OBJECT "BuiltinObjectShader"
 
-b8 vulkanObjectShaderCreate(VulkanContext *context, VulkanObjectShader *outShader) {
+b8 vulkanObjectShaderCreate(VulkanContext *context, Texture *defaultDiffuse,
+    VulkanObjectShader *outShader) {
+
+    outShader->defaultDiffuse = defaultDiffuse;
+
     /** Shader module init per stage. */
     char stageTypeStrs[OBJECT_SHADER_STAGE_COUNT][10] = {"vert", "frag"};
         VkShaderStageFlagBits stageTypes[OBJECT_SHADER_STAGE_COUNT] =
@@ -333,6 +337,11 @@ void vulkanObjectShaderUpdateObject(VulkanContext *context,
         Texture *texture = data.textures[samplerIndex];
         u32 *descriptorGeneration = &objectState->descriptorStates[descriptorIndex]
                                                   .generations[imageIndex];
+
+        if (texture->generation == INVALID_ID) {
+            texture = shader->defaultDiffuse;
+            *descriptorGeneration = INVALID_ID;
+        }
 
         if (texture && (*descriptorGeneration != texture->generation ||
             *descriptorGeneration == INVALID_ID)) {

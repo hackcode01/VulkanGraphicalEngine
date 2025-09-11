@@ -4,7 +4,8 @@
 #include "../vulkan_types.inl"
 #include "../../../renderer/renderer_types.inl"
 
-b8 vulkanObjectShaderCreate(VulkanContext *context, VulkanObjectShader *outShader);
+b8 vulkanObjectShaderCreate(VulkanContext *context, Texture *defaultDiffuse,
+    VulkanObjectShader *outShader);
 
 void vulkanObjectShaderDestroy(VulkanContext *context, struct VulkanObjectShader *shader);
 

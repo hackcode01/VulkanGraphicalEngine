@@ -36,6 +36,9 @@ typedef struct GeometryRenderData {
 typedef struct RendererBackend {
     u64 frameNumber;
 
+    /** Pointers to default textures. */
+    Texture *defaultDiffuse;
+
     b8 (*initialize)(struct RendererBackend *backend, const char *applicationName);
 
     void (*shutdown)(struct RendererBackend* backend);

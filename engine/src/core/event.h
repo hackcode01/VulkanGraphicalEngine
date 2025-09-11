@@ -117,6 +117,12 @@ typedef enum SystemEventCode {
      */
     EVENT_CODE_RESIZED = 0x08,
 
+    EVENT_CODE_DEBUG_0 = 0x10,
+    EVENT_CODE_DEBUG_1 = 0x11,
+    EVENT_CODE_DEBUG_2 = 0x12,
+    EVENT_CODE_DEBUG_3 = 0x13,
+    EVENT_CODE_DEBUG_4 = 0x14,
+
     MAX_EVENT_CODE = 0xFF
 } SystemEventCode;
 
