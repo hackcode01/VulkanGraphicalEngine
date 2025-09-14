@@ -13,6 +13,9 @@
 
 #include "../renderer/renderer_frontend.h"
 
+/** Systems. */
+#include "../systems/texture_system.h"
+
 #include <stdio.h>
 
 typedef struct {
@@ -44,6 +47,8 @@ typedef struct {
     u64 rendererSystemMemoryRequirement;
     void *rendererSystemState;
 
+    u64 textureSystemMemoryRequirement;
+    void *textureSystemState;
 } ApplicationState;
 
 static ApplicationState *appState;
@@ -140,6 +145,20 @@ b8 applicationCreate(Game *gameInstance) {
         return false;
     }
 
+    /** Texture system. */
+    TextureSystemConfig textureSystemConfig;
+    textureSystemConfig.maxTextureCount = 65336;
+    textureSystemInitialize(&appState->textureSystemMemoryRequirement, 0, textureSystemConfig);
+    appState->textureSystemState = linearAllocatorAllocate(&appState->systemsAllocator,
+        appState->textureSystemMemoryRequirement);
+
+    if (!textureSystemInitialize(&appState->textureSystemMemoryRequirement,
+        appState->textureSystemState, textureSystemConfig)) {
+
+        ENGINE_FATAL("Failed to initialize texture system. Application cannot continue.")
+        return false;
+    }
+
     /* Initialize the game. */
     if (!appState->gameInstance->initialize(appState->gameInstance)) {
         ENGINE_FATAL("Game failed to initialize")
@@ -228,6 +247,9 @@ b8 applicationRun() {
     eventUnregister(EVENT_CODE_KEY_RELEASED, 0, applicationOnKey);
 
     inputSystemShutdown(appState->inputSystemState);
+
+    textureSystemShutdown(appState->textureSystemState);
+
     rendererSystemShutdown(appState->rendererSystemState);
     platformSystemShutdown(appState->platformSystemState);
 

@@ -1,4 +1,4 @@
-#include "vulkan_object_shader.h"
+#include "vulkan_material_shader.h"
 
 #include "../../../core/logger.h"
 #include "../../../engine_memory/engine_memory.h"
@@ -9,23 +9,21 @@
 #include "../vulkan_pipeline.h"
 #include "../vulkan_buffer.h"
 
-#define BUILTIN_SHADER_NAME_OBJECT "BuiltinObjectShader"
+#include "../../../systems/texture_system.h"
 
-b8 vulkanObjectShaderCreate(VulkanContext *context, Texture *defaultDiffuse,
-    VulkanObjectShader *outShader) {
+#define BUILTIN_SHADER_NAME_MATERIAL "BuiltinMaterialShader"
 
-    outShader->defaultDiffuse = defaultDiffuse;
-
+b8 vulkanMaterialShaderCreate(VulkanContext *context, VulkanMaterialShader *outShader) {
     /** Shader module init per stage. */
     char stageTypeStrs[OBJECT_SHADER_STAGE_COUNT][10] = {"vert", "frag"};
         VkShaderStageFlagBits stageTypes[OBJECT_SHADER_STAGE_COUNT] =
             {VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT};
 
     for (u32 i = 0; i < OBJECT_SHADER_STAGE_COUNT; ++i) {
-        if (!createShaderModule(context, BUILTIN_SHADER_NAME_OBJECT, stageTypeStrs[i],
+        if (!createShaderModule(context, BUILTIN_SHADER_NAME_MATERIAL, stageTypeStrs[i],
                                 stageTypes[i], i, outShader->stages)) {
             ENGINE_ERROR("Unable to create %s shader module for '%s'.", stageTypeStrs[i],
-                BUILTIN_SHADER_NAME_OBJECT);
+                BUILTIN_SHADER_NAME_MATERIAL)
 
             return false;
         }
@@ -208,7 +206,7 @@ b8 vulkanObjectShaderCreate(VulkanContext *context, Texture *defaultDiffuse,
     return true;
 }
 
-void vulkanObjectShaderDestroy(VulkanContext *context, struct VulkanObjectShader *shader) {
+void vulkanMaterialShaderDestroy(VulkanContext *context, struct VulkanMaterialShader *shader) {
     VkDevice logicalDevice = context->device.logicalDevice;
 
     vkDestroyDescriptorPool(logicalDevice, shader->objectDescriptorPool, context->allocator);
@@ -238,14 +236,14 @@ void vulkanObjectShaderDestroy(VulkanContext *context, struct VulkanObjectShader
     }
 }
 
-void vulkanObjectShaderUse(VulkanContext *context, struct VulkanObjectShader *shader) {
+void vulkanMaterialShaderUse(VulkanContext *context, struct VulkanMaterialShader *shader) {
     u32 imageIndex = context->imageIndex;
     vulkanPipelineBind(&context->graphicsCommandBuffers[imageIndex],
         VK_PIPELINE_BIND_POINT_GRAPHICS, &shader->pipeline);
 }
 
-void vulkanObjectShaderUpdateGlobalState(VulkanContext *context,
-    struct VulkanObjectShader *shader, f32 deltaTime) {
+void vulkanMaterialShaderUpdateGlobalState(VulkanContext *context,
+    struct VulkanMaterialShader *shader, f32 deltaTime) {
 
     u32 imageIndex = context->imageIndex;
     VkCommandBuffer commandBuffer = context->graphicsCommandBuffers[imageIndex].handle;
@@ -280,8 +278,8 @@ void vulkanObjectShaderUpdateGlobalState(VulkanContext *context,
     vkUpdateDescriptorSets(context->device.logicalDevice, 1, &descriptorWrite, 0, 0);
 }
 
-void vulkanObjectShaderUpdateObject(VulkanContext *context,
-    struct VulkanObjectShader *shader, GeometryRenderData data) {
+void vulkanMaterialShaderUpdateObject(VulkanContext *context,
+    struct VulkanMaterialShader *shader, GeometryRenderData data) {
 
     u32 imageIndex = context->imageIndex;
     VkCommandBuffer commandBuffer = context->graphicsCommandBuffers[imageIndex].handle;
@@ -337,13 +335,15 @@ void vulkanObjectShaderUpdateObject(VulkanContext *context,
         Texture *texture = data.textures[samplerIndex];
         u32 *descriptorGeneration = &objectState->descriptorStates[descriptorIndex]
                                                   .generations[imageIndex];
+        u32 *descriptorId = &objectState->descriptorStates[descriptorIndex].ids[imageIndex];
 
         if (texture->generation == INVALID_ID) {
-            texture = shader->defaultDiffuse;
+            texture = textureSystemGetDefaultTexture();
             *descriptorGeneration = INVALID_ID;
         }
 
-        if (texture && (*descriptorGeneration != texture->generation ||
+        if (texture && (*descriptorId != texture->id ||
+            *descriptorGeneration != texture->generation ||
             *descriptorGeneration == INVALID_ID)) {
 
             VulkanTextureData *internalData = (VulkanTextureData*)texture->internalData;
@@ -364,6 +364,7 @@ void vulkanObjectShaderUpdateObject(VulkanContext *context,
 
             if (texture->generation != INVALID_ID) {
                 *descriptorGeneration = texture->generation;
+                *descriptorId = texture->id;
             }
             descriptorIndex++;
         }
@@ -378,8 +379,8 @@ void vulkanObjectShaderUpdateObject(VulkanContext *context,
         shader->pipeline.pipelineLayout, 1, 1, &objectDescriptorSet, 0, 0);
 }
 
-b8 vulkanObjectShaderAcquireResources(VulkanContext *context,
-    struct VulkanObjectShader *shader, u32 *outObjectID) {
+b8 vulkanMaterialShaderAcquireResources(VulkanContext *context,
+    struct VulkanMaterialShader *shader, u32 *outObjectID) {
 
     *outObjectID = shader->objectUniformBufferIndex;
     shader->objectUniformBufferIndex++;
@@ -389,6 +390,7 @@ b8 vulkanObjectShaderAcquireResources(VulkanContext *context,
     for (u32 i = 0; i < VULKAN_OBJECT_SHADER_DESCRIPTOR_COUNT; ++i) {
         for (u32 j = 0; j < 3; ++j) {
             objectState->descriptorStates[i].generations[j] = INVALID_ID;
+            objectState->descriptorStates[i].ids[j] = INVALID_ID;
         }
     }
 
@@ -412,8 +414,8 @@ b8 vulkanObjectShaderAcquireResources(VulkanContext *context,
     return true;
 }
 
-void vulkanObjectShaderReleaseResources(VulkanContext *context,
-    struct VulkanObjectShader *shader, u32 objectID) {
+void vulkanMaterialShaderReleaseResources(VulkanContext *context,
+    struct VulkanMaterialShader *shader, u32 objectID) {
 
     VulkanObjectShaderObjectState *objectState = &shader->objectStates[objectID];
 
@@ -426,6 +428,7 @@ void vulkanObjectShaderReleaseResources(VulkanContext *context,
     for (u32 i = 0; i < VULKAN_OBJECT_SHADER_DESCRIPTOR_COUNT; ++i) {
         for (u32 j = 0; j < 3; ++j) {
             objectState->descriptorStates[i].generations[j] = INVALID_ID;
+            objectState->descriptorStates[i].ids[j] = INVALID_ID;
         }
     }
 }

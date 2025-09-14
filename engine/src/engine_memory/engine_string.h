@@ -12,6 +12,9 @@ ENGINE_API char* stringDuplicate(const char* str);
  */
 ENGINE_API b8 stringsEqual(const char* str_1, const char* str_2);
 
+/** Case-insensitive string comparison. True if the same, otherwise false. */
+ENGINE_API b8 stringsEquali(const char *str_1, const char *str_2);
+
 /** Performs string formatting to dest given format string and parameters. */
 ENGINE_API i32 stringFormat(char* dest, const char* format, ...);
 

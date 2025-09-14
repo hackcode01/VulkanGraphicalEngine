@@ -24,7 +24,7 @@
 #include "../../platform/platform.h"
 
 /** Shaders. */
-#include "shaders/vulkan_object_shader.h"
+#include "shaders/vulkan_material_shader.h"
 
 /** Static Vulkan context. */
 static VulkanContext context;
@@ -256,8 +256,7 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
     }
 
     /** Create builtin shaders. */
-    if (!vulkanObjectShaderCreate(&context, backend->defaultDiffuse,
-        &context.objectShader)) {
+    if (!vulkanMaterialShaderCreate(&context, &context.materialShader)) {
 
         ENGINE_ERROR("Error loading builtin basicLightning shader.")
         return false;
@@ -303,7 +302,7 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
         sizeof(u32) * indexCount, indices);
 
     u32 objectID = 0;
-    if (!vulkanObjectShaderAcquireResources(&context, &context.objectShader, &objectID)) {
+    if (!vulkanMaterialShaderAcquireResources(&context, &context.materialShader, &objectID)) {
         ENGINE_ERROR("Failed to acquire shader resources.")
         return false;
     }
@@ -321,7 +320,7 @@ void vulkanRendererBackendShutdown(RendererBackend* backend) {
     vulkanBufferDestroy(&context, &context.objectVertexBuffer);
     vulkanBufferDestroy(&context, &context.objectIndexBuffer);
 
-    vulkanObjectShaderDestroy(&context, &context.objectShader);
+    vulkanMaterialShaderDestroy(&context, &context.materialShader);
 
     /** Sync objects. */
     for (u8 i = 0; i < context.swapchain.maxFramesInFlight; ++i) {
@@ -527,13 +526,13 @@ b8 vulkanRendererBackendBeginFrame(RendererBackend* backend, f32 deltaTime) {
 }
 
 void vulkanRendererUpdateGlobalState(mat4 projection, mat4 view, vec3 viewPosition, vec4 ambientColour, i32 mode) {
-    vulkanObjectShaderUse(&context, &context.objectShader);
+    vulkanMaterialShaderUse(&context, &context.materialShader);
 
-    context.objectShader.globalUBO.projection = projection;
-    context.objectShader.globalUBO.view = view;
+    context.materialShader.globalUBO.projection = projection;
+    context.materialShader.globalUBO.view = view;
 
     /** Other UBO properties. */
-    vulkanObjectShaderUpdateGlobalState(&context, &context.objectShader,
+    vulkanMaterialShaderUpdateGlobalState(&context, &context.materialShader,
         context.frameDeltaTime);
 }
 
@@ -616,9 +615,9 @@ b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime) {
 void vulkanBackendUpdateObject(GeometryRenderData data) {
     VulkanCommandBuffer* commandBuffer = &context.graphicsCommandBuffers[context.imageIndex];
 
-    vulkanObjectShaderUpdateObject(&context, &context.objectShader, data);
+    vulkanMaterialShaderUpdateObject(&context, &context.materialShader, data);
 
-    vulkanObjectShaderUse(&context, &context.objectShader);
+    vulkanMaterialShaderUse(&context, &context.materialShader);
 
     /** Bind vertex buffer at offset. */
     VkDeviceSize offsets[1] = {0};
@@ -841,7 +840,7 @@ b8 createBuffers(VulkanContext *context) {
     return true;
 }
 
-void vulkanRendererCreateTexture(const char *name, b8 autoRelease,
+void vulkanRendererCreateTexture(const char *name,
     i32 width, i32 height, i32 channelCount, const u8 *pixels,
     b8 hasTransparency, Texture *outTexture) {
 

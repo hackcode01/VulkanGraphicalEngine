@@ -28,6 +28,16 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     VERBATIM
 )
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    "${CMAKE_SOURCE_DIR}/build/bin/assets/textures"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/assets/textures"
+    "${CMAKE_SOURCE_DIR}/build/bin/assets/textures"
+    COMMENT "Copying shaders in binary dir"
+    VERBATIM
+)
+
 set_target_properties(${PROJECT_NAME}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     ${CMAKE_BINARY_DIR}/bin/

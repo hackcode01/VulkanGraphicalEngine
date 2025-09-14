@@ -18,6 +18,7 @@ set(INCLUDE_FILES
     src/game_types.h
 
     src/containers/dynamic_array.h
+    src/containers/hashtable.h
 
     src/core/application.h
     src/core/asserts.h
@@ -56,11 +57,16 @@ set(INCLUDE_FILES
     src/renderer/vulkan/vulkan_pipeline.h
     src/renderer/vulkan/vulkan_buffer.h
 
-    src/renderer/vulkan/shaders/vulkan_object_shader.h
+    src/renderer/vulkan/shaders/vulkan_material_shader.h
+
+    src/resources/resource_types.h
+
+    src/systems/texture_system.h
 )
 
 set(SOURCE_FILES
     src/containers/dynamic_array.c
+    src/containers/hashtable.c
 
     src/core/application.c
     src/core/clock.c
@@ -94,7 +100,9 @@ set(SOURCE_FILES
     src/renderer/vulkan/vulkan_pipeline.c
     src/renderer/vulkan/vulkan_buffer.c
 
-    src/renderer/vulkan/shaders/vulkan_object_shader.c
+    src/renderer/vulkan/shaders/vulkan_material_shader.c
+
+    src/systems/texture_system.c
 )
 
 add_library(${PROJECT_NAME} STATIC ${INCLUDE_FILES} ${SOURCE_FILES})

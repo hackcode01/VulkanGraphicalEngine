@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#ifndef _MSC_VER
+#include <string.h>
+#endif
+
 u64 stringLength(const char* str) {
     return strlen(str);
 }
@@ -19,6 +23,14 @@ char* stringDuplicate(const char* str) {
 
 b8 stringsEqual(const char* str_1, const char* str_2) {
     return strcmp(str_1, str_2) == 0;
+}
+
+b8 stringsEquali(const char *str_1, const char *str_2) {
+#if defined(__GNUC__)
+    return strcasecmp(str_1, str_2) == 0;
+#elif (defined _MSC_VER)
+    return _strcmpi(str_1, str_2) == 0;
+#endif
 }
 
 i32 stringFormat(char* dest, const char* format, ...) {

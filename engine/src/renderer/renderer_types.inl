@@ -1,5 +1,5 @@
-#ifndef __RENDERER_TYPES_INL__
-#define __RENDERER_TYPES_INL__
+#ifndef __ENGINE_RENDERER_TYPES_INL__
+#define __ENGINE_RENDERER_TYPES_INL__
 
 #include "../defines.h"
 #include "../engine_math/math_types.h"
@@ -36,9 +36,6 @@ typedef struct GeometryRenderData {
 typedef struct RendererBackend {
     u64 frameNumber;
 
-    /** Pointers to default textures. */
-    Texture *defaultDiffuse;
-
     b8 (*initialize)(struct RendererBackend *backend, const char *applicationName);
 
     void (*shutdown)(struct RendererBackend* backend);
@@ -55,8 +52,8 @@ typedef struct RendererBackend {
 
     void (*createTexture)(
         const char *name,
-        b8 autoRelease,
-        i32 width, i32 height,
+        i32 width,
+        i32 height,
         i32 channelCount,
         const u8 *pixels,
         b8 hasTransparency,

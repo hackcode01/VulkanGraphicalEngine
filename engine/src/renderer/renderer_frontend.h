@@ -15,7 +15,6 @@ ENGINE_API void rendererSetView(mat4 view);
 
 void rendererCreateTexture(
     const char *name,
-    b8 autoRelease,
     i32 width,
     i32 height,
     i32 channelCount,
