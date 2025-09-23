@@ -20,10 +20,10 @@ b8 vulkanRendererBackendEndFrame(RendererBackend* backend, f32 deltaTime);
 
 void vulkanBackendUpdateObject(GeometryRenderData data);
 
-void vulkanRendererCreateTexture(const char *name,
-    i32 width, i32 height, i32 channelCount, const u8 *pixels, b8 hasTransparency,
-    Texture *outTexture);
-
+void vulkanRendererCreateTexture(const u8 *pixels, Texture *texture);
 void vulkanRendererDestroyTexture(Texture *texture);
+
+b8 vulkanRendererCreateMaterial(struct Material *material);
+void vulkanRendererDestroyMaterial(struct Material *material);
 
 #endif

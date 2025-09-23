@@ -17,9 +17,9 @@ void vulkanMaterialShaderUpdateObject(VulkanContext *context,
     struct VulkanMaterialShader *shader, GeometryRenderData data);
 
 b8 vulkanMaterialShaderAcquireResources(VulkanContext *context,
-    struct VulkanMaterialShader *shader, u32 *outObjectID);
+    struct VulkanMaterialShader *shader, Material *material);
 
 void vulkanMaterialShaderReleaseResources(VulkanContext *context,
-    struct VulkanMaterialShader *shader, u32 objectID);
+    struct VulkanMaterialShader *shader, Material *material);
 
 #endif

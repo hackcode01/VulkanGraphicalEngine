@@ -11,6 +11,8 @@ b8 rendererBackendCreate(RendererBackendType type, RendererBackend *outRendererB
         outRendererBackend->updateObject = vulkanBackendUpdateObject;
         outRendererBackend->createTexture = vulkanRendererCreateTexture;
         outRendererBackend->destroyTexture = vulkanRendererDestroyTexture;
+        outRendererBackend->createMaterial = vulkanRendererCreateMaterial;
+        outRendererBackend->destroyMaterial = vulkanRendererDestroyMaterial;
 
         return true;
     }
@@ -28,4 +30,6 @@ void rendererBackendDestroy(RendererBackend* rendererBackend) {
     rendererBackend->updateObject = 0;
     rendererBackend->createTexture = 0;
     rendererBackend->destroyTexture = 0;
+    rendererBackend->createMaterial = 0;
+    rendererBackend->destroyMaterial = 0;
 }

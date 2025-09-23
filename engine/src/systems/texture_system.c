@@ -34,6 +34,7 @@ static TextureSystemState *statePtr = 0;
 b8 createDefaultTextures(TextureSystemState *state);
 void destroyDefaultTextures(TextureSystemState *state);
 b8 loadTexture(const char *textureName, Texture *texture);
+void destroyTexture(Texture *texture);
 
 b8 textureSystemInitialize(u64 *memoryRequirement, void *state, TextureSystemConfig config) {
     if (config.maxTextureCount == 0) {
@@ -162,26 +163,30 @@ void textureSystemRelease(const char *name) {
             return;
         }
 
+        /**
+         * Take a copy of the name since it will be wiped out by destroy,
+         * (as passed in name is generally a pointer to the actual texture's name).
+         */
+        char nameCopy[TEXTURE_NAME_MAX_LENGTH];
+        stringNCopy(nameCopy, name, TEXTURE_NAME_MAX_LENGTH);
+
         ref.referenceCount--;
         if (ref.referenceCount == 0 && ref.autoRelease) {
             Texture *texture = &statePtr->registeredTextures[ref.handle];
 
-            rendererDestroyTexture(texture);
-
-            engineZeroMemory(texture, sizeof(Texture));
-            texture->id = INVALID_ID;
-            texture->generation = INVALID_ID;
+            /** Destroy/reset texture. */
+            destroyTexture(texture);
 
             ref.handle = INVALID_ID;
             ref.autoRelease = false;
             ENGINE_TRACE("Released texture '%s'., "
-                "Texture unloaded because reference count=0 and auto_release=true.", name)
+                "Texture unloaded because reference count=0 and auto_release=true.", nameCopy)
         } else {
             ENGINE_TRACE("Released texture '%s', now has a reference count of '%i' (auto_release=%s).",
-                name, ref.referenceCount, ref.autoRelease ? "true" : "false")
+                nameCopy, ref.referenceCount, ref.autoRelease ? "true" : "false")
         }
 
-        hashtableSet(&statePtr->registeredTextureTable, name, &ref);
+        hashtableSet(&statePtr->registeredTextureTable, nameCopy, &ref);
     } else {
         ENGINE_ERROR("texture_system_release failed to release texture '%s'.", name)
     }
@@ -225,8 +230,15 @@ b8 createDefaultTextures(TextureSystemState *state) {
         }
     }
 
-    rendererCreateTexture(DEFAULT_TEXTURE_NAME, textureDimension, textureDimension,
-        4, pixels, false, &state->defaultTexture);
+    stringNCopy(state->defaultTexture.name, DEFAULT_TEXTURE_NAME, TEXTURE_NAME_MAX_LENGTH);
+    state->defaultTexture.width = textureDimension;
+    state->defaultTexture.height = textureDimension;
+    state->defaultTexture.channelCount = 4;
+    state->defaultTexture.generation = INVALID_ID;
+    state->defaultTexture.hasTransparency = false;
+
+    rendererCreateTexture(pixels, &state->defaultTexture);
+
     state->defaultTexture.generation = INVALID_ID;
 
     return true;
@@ -234,7 +246,7 @@ b8 createDefaultTextures(TextureSystemState *state) {
 
 void destroyDefaultTextures(TextureSystemState *state) {
     if (state) {
-        rendererDestroyTexture(&state->defaultTexture);
+        destroyTexture(&state->defaultTexture);
     }
 }
 
@@ -274,16 +286,18 @@ b8 loadTexture(const char *textureName, Texture *texture) {
         if (stbi_failure_reason()) {
             ENGINE_WARNING("loadTexture() failed to load file '%s': %s",
                 fullFilePath, stbi_failure_reason())
+
+            stbi__err(0, 0);
+            return false;
         }
 
-        rendererCreateTexture(
-            textureName,
-            tempTexture.width,
-            tempTexture.height,
-            tempTexture.channelCount,
-            data,
-            hasTransparency,
-            &tempTexture);
+        /** Take a copy of the name. */
+        stringNCopy(tempTexture.name, textureName, TEXTURE_NAME_MAX_LENGTH);
+        tempTexture.generation = INVALID_ID;
+        tempTexture.hasTransparency = hasTransparency;
+
+        /** Acquire internal texture resources and upload to GPU. */
+        rendererCreateTexture(data, &tempTexture);
 
         Texture old = *texture;
 
@@ -304,8 +318,21 @@ b8 loadTexture(const char *textureName, Texture *texture) {
         if (stbi_failure_reason()) {
             ENGINE_WARNING("loadTexture() failed to load file '%s': %s",
                 fullFilePath, stbi_failure_reason())
+
+            /** Clear the error so the next load doesn't fail. */
+            stbi__err(0, 0);
         }
 
         return false;
     }
+}
+
+void destroyTexture(Texture *texture) {
+    /** Clean up backend resources. */
+    rendererDestroyTexture(texture);
+
+    engineZeroMemory(texture->name, sizeof(char) * TEXTURE_NAME_MAX_LENGTH);
+    engineZeroMemory(texture, sizeof(Texture));
+    texture->id = INVALID_ID;
+    texture->generation = INVALID_ID;
 }

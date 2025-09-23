@@ -8,8 +8,13 @@
 #include <sys/stat.h>
 
 b8 filesystemExists(const char *path) {
+#ifdef _MSC_VER
+    struct _stat buffer;
+    return _stat(path, &buffer);
+#else
     struct stat buffer;
     return stat(path, &buffer) == 0;
+#endif
 }
 
 b8 filesystemOpen(const char *path, FileModes mode, b8 binary, FileHandle *outHandle) {
@@ -51,15 +56,11 @@ void filesystemClose(FileHandle *handle) {
     }
 }
 
-b8 filesystemReadLine(FileHandle *handle, char **lineBuffer) {
-    if (handle->handle) {
-        /** Since we are reading a single line, it should be safe to assume this is enough characters. */
-        char buffer[32000];
-
-        if (fgets(buffer, 32000, (FILE*)handle->handle) != 0) {
-            u64 length = strlen(buffer);
-            *lineBuffer = engineAllocate((sizeof(char) * length) + 1, MEMORY_TAG_STRING);
-            strcpy(*lineBuffer, buffer);
+b8 filesystemReadLine(FileHandle *handle, u64 maxLength, char **lineBuffer, u64 *outLineLength) {
+    if (handle->handle && lineBuffer && outLineLength && maxLength > 0) {
+        char *buffer = *lineBuffer;
+        if (fgets(buffer, maxLength, (FILE*)handle->handle) != 0) {
+            *outLineLength = strlen(*lineBuffer);
 
             return true;
         }

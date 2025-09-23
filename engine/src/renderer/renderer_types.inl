@@ -19,18 +19,17 @@ typedef struct GlobalUniformObject {
     mat4 m_reserved_2;
 } GlobalUniformObject;
 
-typedef struct ObjectUniformObject {
+typedef struct MaterialUniformObject {
     vec4 diffuseColor;
     vec4 v_reserved_1;
     vec4 v_reserved_2;
     vec4 v_reserved_3;
     vec4 v_reserved_4;
-} ObjectUniformObject;
+} MaterialUniformObject;
 
 typedef struct GeometryRenderData {
-    u32 objectID;
     mat4 model;
-    Texture *textures[16];
+    Material *material;
 } GeometryRenderData;
 
 typedef struct RendererBackend {
@@ -50,17 +49,11 @@ typedef struct RendererBackend {
 
     void (*updateObject)(GeometryRenderData data);
 
-    void (*createTexture)(
-        const char *name,
-        i32 width,
-        i32 height,
-        i32 channelCount,
-        const u8 *pixels,
-        b8 hasTransparency,
-        struct Texture *outTexture);
-
+    void (*createTexture)(const u8 *pixels, struct Texture *texture);
     void (*destroyTexture)(struct Texture *texture);
 
+    b8 (*createMaterial)(struct Material *material);
+    void (*destroyMaterial)(struct Material *material);
 } RendererBackend;
 
 typedef struct RenderPacket {

@@ -13,15 +13,11 @@ b8 rendererDrawFrame(RenderPacket *packet);
 /** HACK: this should not be exposed outside the engine. */
 ENGINE_API void rendererSetView(mat4 view);
 
-void rendererCreateTexture(
-    const char *name,
-    i32 width,
-    i32 height,
-    i32 channelCount,
-    const u8 *pixels,
-    b8 hasTransparency,
-    struct Texture *outTexture);
+void rendererCreateTexture(const u8 *pixels, struct Texture *texture);
 
 void rendererDestroyTexture(struct Texture *texture);
+
+b8 rendererCreateMaterial(struct Material *material);
+void rendererDestroyMaterial(struct Material *material);
 
 #endif

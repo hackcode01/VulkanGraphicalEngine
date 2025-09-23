@@ -301,12 +301,6 @@ b8 vulkanRendererBackendInitialize(RendererBackend *backend, const char *applica
         context.device.graphicsQueue, &context.objectIndexBuffer, 0,
         sizeof(u32) * indexCount, indices);
 
-    u32 objectID = 0;
-    if (!vulkanMaterialShaderAcquireResources(&context, &context.materialShader, &objectID)) {
-        ENGINE_ERROR("Failed to acquire shader resources.")
-        return false;
-    }
-
     ENGINE_INFO("Vulkan renderer initialized successfully.")
     return true;
 }
@@ -840,18 +834,10 @@ b8 createBuffers(VulkanContext *context) {
     return true;
 }
 
-void vulkanRendererCreateTexture(const char *name,
-    i32 width, i32 height, i32 channelCount, const u8 *pixels,
-    b8 hasTransparency, Texture *outTexture) {
-
-    outTexture->width = width;
-    outTexture->height = height;
-    outTexture->channelCount = channelCount;
-    outTexture->generation = INVALID_ID;
-
-    outTexture->internalData = (VulkanTextureData*)engineAllocate(sizeof(VulkanTextureData), MEMORY_TAG_TEXTURE);
-    VulkanTextureData *data = (VulkanTextureData*)outTexture->internalData;
-    VkDeviceSize imageSize = width * height * channelCount;
+void vulkanRendererCreateTexture(const u8 *pixels, Texture *texture) {
+    texture->internalData = (VulkanTextureData*)engineAllocate(sizeof(VulkanTextureData), MEMORY_TAG_TEXTURE);
+    VulkanTextureData *data = (VulkanTextureData*)texture->internalData;
+    VkDeviceSize imageSize = texture->width * texture->height * texture->channelCount;
 
     VkFormat imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
@@ -862,7 +848,10 @@ void vulkanRendererCreateTexture(const char *name,
 
     vulkanBufferLoadData(&context, &staging, 0, imageSize, 0, pixels);
 
-    vulkanImageCreate(&context, VK_IMAGE_TYPE_2D, width, height, imageFormat,
+    vulkanImageCreate(&context, VK_IMAGE_TYPE_2D,
+        texture->width,
+        texture->height,
+        imageFormat,
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -915,8 +904,7 @@ void vulkanRendererCreateTexture(const char *name,
         return;
     }
 
-    outTexture->hasTransparency = hasTransparency;
-    outTexture->generation++;
+    texture->generation++;
 }
 
 void vulkanRendererDestroyTexture(struct Texture *texture) {
@@ -932,4 +920,32 @@ void vulkanRendererDestroyTexture(struct Texture *texture) {
     }
 
     engineZeroMemory(texture, sizeof(struct Texture));
+}
+
+b8 vulkanRendererCreateMaterial(struct Material *material) {
+    if (material) {
+        if (!vulkanMaterialShaderAcquireResources(&context, &context.materialShader, material)) {
+            ENGINE_ERROR("vulkan_renderer_create_material - Failed to acquire shader resources.")
+            return false;
+        }
+
+        ENGINE_TRACE("Renderer: Material created.")
+        return true;
+    }
+
+    ENGINE_ERROR("vulkan_renderer_create_material called with nullptr. Creation failed.")
+    return false;
+}
+
+void vulkanRendererDestroyMaterial(struct Material *material) {
+    if (material) {
+        if (material->internalId != INVALID_ID) {
+            vulkanMaterialShaderReleaseResources(&context, &context.materialShader, material);
+        } else {
+            ENGINE_WARNING("VulkanRendererDestroyMaterial called with internalID = INVALID_ID. "
+                "Nothing was done.")
+        }
+    } else {
+        ENGINE_WARNING("VulkanRendererDestroyMaterial called with nullptr. Nothing was done.")
+    }
 }

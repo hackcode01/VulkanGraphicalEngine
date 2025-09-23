@@ -7,6 +7,7 @@
 
 #include "../resources/resource_types.h"
 #include "../systems/texture_system.h"
+#include "../systems/material_system.h"
 
 #include "../engine_memory/engine_string.h"
 #include "../core/event.h"
@@ -18,7 +19,7 @@ typedef struct RendererSystemState {
     f32 nearClip;
     f32 farClip;
 
-    Texture *diffuse;
+    Material *material;
 } RendererSystemState;
 
 static RendererSystemState *statePtr;
@@ -37,7 +38,11 @@ b8 eventOnDebugEvent(u16 code, void *sender, void *listenerInstance, EventContex
     choice %= 3;
 
     /** Acquire the new texture. */
-    statePtr->diffuse = textureSystemAcquire(names[choice], true);
+    statePtr->material->diffuseMap.texture = textureSystemAcquire(names[choice], true);
+    if (!statePtr->material->diffuseMap.texture) {
+        ENGINE_WARNING("EventOnDebugEvent no texture! Using default")
+        statePtr->material->diffuseMap.texture = textureSystemGetDefaultTexture();
+    }
 
     /** Release the old texture. */
     textureSystemRelease(oldName);
@@ -126,14 +131,23 @@ b8 rendererDrawFrame(RenderPacket* packet) {
          * mat4 model = quat_to_rotation_matrix(rotation, vec3_zero());
          */
         GeometryRenderData data = {};
-        data.objectID = 0;
         data.model = model;
 
-        if (!statePtr->diffuse) {
-            statePtr->diffuse = textureSystemGetDefaultTexture();
+        if (!statePtr->material) {
+            statePtr->material = materialSystemAcquire("material");
+
+            if (!statePtr->material) {
+                ENGINE_WARNING("Automatic material load failed, falling back to manual default material.")
+                MaterialConfig config;
+                stringNCopy(config.name, "material", MATERIAL_NAME_MAX_LENGTH);
+                config.autoRelease = false;
+                config.diffuseColour = vec4_one();
+                stringNCopy(config.diffuseMapName, DEFAULT_TEXTURE_NAME, TEXTURE_NAME_MAX_LENGTH);
+                statePtr->material = materialSystemAcquireFromConfig(config);
+            }
         }
 
-        data.textures[0] = statePtr->diffuse;
+        data.material = statePtr->material;
         statePtr->backend.updateObject(data);
 
         /** End the frame. If this fails, it's likely unrecoverable. */
@@ -152,19 +166,19 @@ void rendererSetView(mat4 view) {
     statePtr->view = view;
 }
 
-void rendererCreateTexture(
-    const char *name,
-    i32 width,
-    i32 height,
-    i32 channelCount,
-    const u8 *pixels,
-    b8 hasTransparency,
-    struct Texture *outTexture) {
+void rendererCreateTexture(const u8 *pixels, struct Texture *texture) {
 
-    statePtr->backend.createTexture(name, width, height, channelCount,
-        pixels, hasTransparency, outTexture);
+    statePtr->backend.createTexture(pixels, texture);
 }
 
 void rendererDestroyTexture(struct Texture *texture) {
     statePtr->backend.destroyTexture(texture);
+}
+
+b8 rendererCreateMaterial(struct Material *material) {
+    return statePtr->backend.createMaterial(material);
+}
+
+void rendererDestroyMaterial(struct Material *material) {
+    statePtr->backend.destroyMaterial(material);
 }
